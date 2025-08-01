@@ -1,0 +1,31 @@
+{
+  "name": "ElderCompanion - Cuidado Inteligente para Adultos Mayores",
+  "short_name": "ElderCompanion",
+  "description": "Sistema inteligente de monitoreo y cuidado para adultos mayores con asistentes robóticos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOiIvL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjI0IiBmaWxsPSIjMjU2M2ViIi8+CjxwYXRoIGQ9Ik05NiA0OEM4NC45NTQzIDQ4IDc2IDU2Ljk1NDMgNzYgNjhWMTI0Qzc2IDEzNS4wNDYgODQuOTU0MyAxNDQgOTYgMTQ0QzEwNy4wNDYgMTQ0IDExNiAxMzUuMDQ2IDExNiAxMjRWNjhDMTE2IDU2Ljk1NDMgMTA3LjA0NiA0OCA5NiA0OFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik02NCA5NkM2NCA5MS41ODE3IDY3LjU4MTcgODggNzIgODhDNzYuNDE4MyA4OCA4MCA5MS41ODE3IDgwIDk2VjEyNEM4MCA5NC4zNjk0IDExNCA2OCAxNDQgNjhWMTI0QzE0NCAxNTYuMDMyIDExOC4wMzIgMTgwIDk2IDE4MEM3My45Njc1IDE4MCA0OCAxNTYuMDMyIDQ4IDEyNFY5NkM0OCA5MS41ODE3IDUxLjU4MTcgODggNTYgODhDNjAuNDE4MyA4OCA2NCA5MS41ODE3IDY0IDk2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDUxMiA1MTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOiIvL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjY0IiBmaWxsPSIjMjU2M2ViIi8+CjxwYXRoIGQ9Ik0yNTYgMTI4QzIzMy45MDkgMTI4IDIxNiAxNDUuOTA5IDIxNiAxNjhWMzQ0QzIxNiAzNjYuMDkxIDIzMy45MDkgMzg0IDI1NiAzODRDMjc4LjA5MSAzODQgMjk2IDM2Ni4wOTEgMjk2IDM0NFYxNjhDMjk2IDE0NS45MDkgMjc4LjA5MSAxMjggMjU2IDEyOFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xNzYgMjU2QzE3NiAyNDcuMTYzIDE4My4xNjMgMjQwIDE5MiAyNDBDMjAwLjgzNyAyNDAgMjA4IDI0Ny4xNjMgMjA4IDI1NlYzNDRDMjA4IDQxNS4xNzQgMjY0LjgyNiA0NzIgMzM2IDQ3MlYzNDRDMzM2IDI3Mi44MjYgMjc5LjE3NCAyMTYgMjA4IDIxNlYzNDRDMjA4IDI0Ny4xNjMgMjAwLjgzNyAyNDAgMTkyIDI0MEMxODMuMTYzIDI0MCAxNzYgMjQ3LjE2MyAxNzYgMjU2WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["productivity", "utilities", "audio"],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzc1IiBoZWlnaHQ9IjgwMCIgdmlld0JveD0iMCAwIDM3NSA4MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOiIvL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMzc1IiBoZWlnaHQ9IjgwMCIgZmlsbD0iI2Y4ZmFmYyIvPgo8L3N2Zz4=",
+      "sizes": "375x800",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ]
+}
