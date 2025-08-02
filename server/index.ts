@@ -41,28 +41,17 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message: err.message || "Internal Server Error" });
 });
 
-// 5) Setup based on environment
+// 5) Setup server for Replit
 async function startServer() {
-  if (process.env.NODE_ENV === "production") {
-    // En producción (Vercel), no servimos archivos estáticos desde Express
-    // Vercel maneja esto automáticamente
-    return;
-  } else {
-    // En desarrollo local, configurar Vite y iniciar servidor
-    await setupVite(app, server);
-    const PORT = parseInt(process.env.PORT || "5000", 10);
-    server.listen(PORT, "0.0.0.0", () => {
-      log(`Server running on port ${PORT}`);
-      log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    });
-  }
+  // Configurar Vite y iniciar servidor
+  await setupVite(app, server);
+  const PORT = parseInt(process.env.PORT || "5000", 10);
+  server.listen(PORT, "0.0.0.0", () => {
+    log(`Server running on port ${PORT}`);
+    log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  });
 }
 
-// Solo iniciar servidor si no estamos en producción
-if (process.env.NODE_ENV !== "production") {
-  startServer().catch(console.error);
-}
-
-// Exportar la aplicación para Vercel
-export default app;
+// Iniciar servidor
+startServer().catch(console.error);
 

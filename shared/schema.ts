@@ -110,8 +110,6 @@ export const insertElderlyUserSchema = createInsertSchema(elderlyUsers).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).extend({
-  dateOfBirth: z.string().optional(),
 });
 
 export const insertInteractionSchema = createInsertSchema(interactions).omit({
