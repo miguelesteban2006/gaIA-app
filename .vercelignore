@@ -4,7 +4,6 @@
 .env.development
 
 # Source files (keep client/ for build, exclude server/ source)
-server/
 
 # Node modules
 node_modules/
