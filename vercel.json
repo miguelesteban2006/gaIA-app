@@ -7,7 +7,7 @@
       "use": "@vercel/static-build",
       "config": { 
         "distDir": "dist/public",
-        "buildCommand": "npx vite build"
+        "buildCommand": "node vercel-build.mjs && npm run build"
       }
     },
     {

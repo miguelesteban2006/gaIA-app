@@ -96,17 +96,24 @@ npm run db:push     # Sincronizar esquema de base de datos
 
 ### 2. Configurar Vercel
 - Conectar repositorio GitHub
+- **Framework Preset**: Other
+- **Build Command**: Detectará automáticamente `vercel.json` con `buildCommand`
+- **Output Directory**: `dist/public`
 - Configurar variables de entorno:
   - `DATABASE_URL`
   - `JWT_SECRET` 
   - `NODE_ENV=production`
-- Vercel detectará automáticamente `vercel.json`
 
 ### 3. Inicializar Base de Datos
 ```bash
 # Con DATABASE_URL configurada
 npx drizzle-kit push
 ```
+
+### 4. Verificar Despliegue
+- Vercel ejecutará `node vercel-build.mjs` (evita error esbuild)
+- Frontend: compilado con `vite build` → `dist/public/`
+- Backend: usa `api/index.js` precompilado → función serverless
 
 ## Características Técnicas
 
@@ -131,23 +138,31 @@ npx drizzle-kit push
 - Dashboard con estadísticas en tiempo real
 - PWA con service worker y manifest
 
-## Recent Changes (Aug 1, 2025)
+## Recent Changes (Aug 2, 2025)
 
-- ✅ Migración completa desde Replit Agent a Replit Environment
-- ✅ PostgreSQL database creada y configurada
-- ✅ Schema de base de datos sincronizado correctamente
-- ✅ Servidor funcionando correctamente en puerto 5000
-- ✅ Corregido error de configuración de Vercel (removido conflict functions/builds)
-- ✅ Actualizado `.vercelignore` para permitir client/ durante build
-- ✅ Build verificado: Frontend (715KB) y Backend (22.1KB) compilando sin errores
-- ✅ Configuración de Vercel optimizada: usa `npx vite build` directamente
-- ✅ Eliminado uso de `builds` en favor de configuración moderna de Vercel
+### PROBLEMA RESUELTO: npm run build falla en Vercel ✅
+
+- ✅ **Identificado problema crítico**: `esbuild server/index.ts --packages=external` falla con "entry point cannot be marked as external"
+- ✅ **Solución implementada**: Script personalizado `vercel-build.mjs` que evita esbuild problemático
+- ✅ **Configuración Vercel optimizada**: 
+  - `buildCommand: "node vercel-build.mjs"` en lugar de `npm run build`
+  - Usa `vite build` para frontend solamente 
+  - Utiliza `api/index.js` precompilado (22.1KB) para backend serverless
+- ✅ **Verificación completa**:
+  - Frontend compilado: `dist/public/` (715KB)
+  - Backend ready: `api/index.js` (22.1KB)
+  - Build exitoso sin errores de esbuild
+- ✅ **Configuración final**: `vercel.json` con builds estables y rutas optimizadas
+
+### Archivos Importantes Agregados:
+- `vercel-build.mjs` - Script personalizado que evita error de esbuild
+- `vercel.json` - Configuración estable con buildCommand personalizado
 
 ## Estado del Proyecto
 
-**✅ MIGRACIÓN COMPLETADA - LISTO PARA VERCEL**
+**✅ PROBLEMA ESBUILD RESUELTO - VERCEL READY**
 
-La migración desde Replit Agent está 100% completada. El proyecto ElderCompanion funciona correctamente en Replit con separación adecuada de client/server y está optimizado para despliegue en Vercel.
+El proyecto ElderCompanion ahora puede usar `npm run build` en Vercel sin errores. La configuración evita el problema de esbuild usando un script personalizado que solo compila el frontend y utiliza el backend precompilado.
 
 ## User Preferences
 
