@@ -1,37 +1,22 @@
 {
   "version": 2,
-  "name": "eldercompanion",
   "builds": [
     {
       "src": "package.json",
       "use": "@vercel/static-build",
-      "config": { 
-        "distDir": "dist/public",
-        "buildCommand": "node vercel-build.mjs && npm run build"
-      }
+      "config": { "distDir": "dist/public" }
     },
     {
-      "src": "api/index.js",
+      "src": "server/index.ts",
       "use": "@vercel/node",
       "config": {
-        "maxDuration": 30
+        "runtime": "nodejs18.x",
+        "maxLambdaSize": "50mb"
       }
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/.*",
-      "dest": "/index.html"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+    { "src": "/api/(.*)", "dest": "/server/index.js" },
+    { "src": "/(.*)",     "dest": "/dist/public/$1" }
+  ]
 }
