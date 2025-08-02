@@ -16,9 +16,8 @@ import {
   insertHealthAlertSchema,
   insertUserElderlyRelationSchema,
 } from "@shared/schema";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
+// File upload functionality removed for Vercel compatibility
+// Use cloud storage services like Cloudinary or AWS S3 for file uploads
 
 export function registerRoutes(app: Express) {
   // Registro de usuario
@@ -224,10 +223,6 @@ export function registerRoutes(app: Express) {
     }
   });
 
-  // Servir uploads
-  const uploadPath = path.join(process.cwd(), "uploads");
-  if (!fs.existsSync(uploadPath)) {
-    fs.mkdirSync(uploadPath, { recursive: true });
-  }
-  app.use("/uploads", express.static(uploadPath));
+  // Note: Static file serving is handled by Vercel's CDN in production
+  // Local file uploads should use cloud storage (S3, Cloudinary, etc.) for Vercel deployment
 }
