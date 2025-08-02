@@ -111,7 +111,7 @@ export const insertElderlyUserSchema = createInsertSchema(elderlyUsers).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
-  dateOfBirth: z.string().optional().transform((val) => val ? new Date(val) : null),
+  dateOfBirth: z.string().optional(),
 });
 
 export const insertInteractionSchema = createInsertSchema(interactions).omit({
