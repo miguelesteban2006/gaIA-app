@@ -3,9 +3,7 @@
 .env.local
 .env.development
 
-# Source files
-src/
-client/
+# Source files (keep client/ for build, exclude server/ source)
 server/
 
 # Node modules
@@ -36,6 +34,10 @@ __tests__/
 README.md
 DEPLOYMENT.md
 VERCEL_SETUP.md
+VERCEL_DEPLOYMENT_CHECKLIST.md
 
-# TypeScript
-tsconfig.json
+# TypeScript config (keep for build)
+# tsconfig.json
+
+# Build output will be in dist/
+dist/index.js
