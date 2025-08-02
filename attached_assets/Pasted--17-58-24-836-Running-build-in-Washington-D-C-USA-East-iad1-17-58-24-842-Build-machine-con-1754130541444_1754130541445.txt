@@ -1,0 +1,44 @@
+[17:58:24.836] Running build in Washington, D.C., USA (East) – iad1
+[17:58:24.842] Build machine configuration: 2 cores, 8 GB
+[17:58:24.897] Cloning github.com/miguelesteban2006/gaIA-app (Branch: main, Commit: 0fc7193)
+[17:58:25.396] Previous build caches not available
+[17:58:25.691] Cloning completed: 791.000ms
+[17:58:25.790] Found .vercelignore
+[17:58:25.840] Removed 79 ignored files defined in .vercelignore
+[17:58:25.840]   /client/index.html
+[17:58:25.840]   /client/public/manifest.json
+[17:58:25.840]   /client/public/sw.js
+[17:58:25.840]   /client/src/App.tsx
+[17:58:25.840]   /client/src/components/AudioRecorder.tsx
+[17:58:25.841]   /client/src/components/InteractionsList.tsx
+[17:58:25.841]   /client/src/components/SentimentChart.tsx
+[17:58:25.841]   /client/src/components/StatsCards.tsx
+[17:58:25.841]   /client/src/components/ui/accordion.tsx
+[17:58:25.841]   /client/src/components/ui/alert-dialog.tsx
+[17:58:28.625] Running "vercel build"
+[17:58:29.182] Vercel CLI 44.6.4
+[17:58:29.365] WARN! Due to `builds` existing in your configuration file, the Build and Development Settings defined in your Project Settings will not apply. Learn More: https://vercel.link/unused-build-settings
+[17:58:29.925] Installing dependencies...
+[17:58:34.824] npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+[17:58:34.852] npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+[17:58:39.623] 
+[17:58:39.623] added 526 packages in 9s
+[17:58:39.623] 
+[17:58:39.624] 71 packages are looking for funding
+[17:58:39.624]   run `npm fund` for details
+[17:58:39.677] Running "npm run build"
+[17:58:39.787] 
+[17:58:39.788] > rest-express@1.0.0 build
+[17:58:39.788] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+[17:58:39.788] 
+[17:58:40.173] [36mvite v6.3.5 [32mbuilding for production...[36m[39m
+[17:58:40.223] [32m✓[39m 0 modules transformed.
+[17:58:40.225] [31m✗[39m Build failed in 25ms
+[17:58:40.226] [31merror during build:
+[17:58:40.226] [31mCould not resolve entry module "client/index.html".[31m
+[17:58:40.226]     at getRollupError (file:///vercel/path0/node_modules/rollup/dist/es/shared/parseAst.js:401:41)
+[17:58:40.227]     at error (file:///vercel/path0/node_modules/rollup/dist/es/shared/parseAst.js:397:42)
+[17:58:40.227]     at ModuleLoader.loadEntryModule (file:///vercel/path0/node_modules/rollup/dist/es/shared/node-entry.js:21511:20)
+[17:58:40.227]     at async Promise.all (index 0)[39m
+[17:58:40.255] Error: Command "npm run build" exited with 1
+[17:58:43.634] Exiting build container

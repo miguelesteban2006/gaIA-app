@@ -1,13 +1,23 @@
 {
   "version": 2,
   "name": "eldercompanion",
-  "buildCommand": "npx vite build",
-  "outputDirectory": "dist/public",
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": { 
+        "distDir": "dist/public",
+        "buildCommand": "npx vite build"
+      }
+    },
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node",
+      "config": {
+        "maxDuration": 30
+      }
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",

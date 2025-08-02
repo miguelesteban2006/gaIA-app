@@ -1,0 +1,42 @@
+[12:57:41.269] Running build in Washington, D.C., USA (East) – iad1
+[12:57:41.270] Build machine configuration: 2 cores, 8 GB
+[12:57:41.295] Cloning github.com/miguelesteban2006/gaIA-app (Branch: main, Commit: 25d2223)
+[12:57:41.430] Previous build caches not available
+[12:57:41.613] Cloning completed: 318.000ms
+[12:57:41.642] Found .vercelignore
+[12:57:41.649] Removed 11 ignored files defined in .vercelignore
+[12:57:41.649]   /DEPLOYMENT.md
+[12:57:41.649]   /README.md
+[12:57:41.649]   /server/auth.ts
+[12:57:41.649]   /server/db.ts
+[12:57:41.650]   /server/index.ts
+[12:57:41.650]   /server/replitAuth.ts
+[12:57:41.650]   /server/routes.ts
+[12:57:41.650]   /server/storage.ts
+[12:57:41.650]   /server/vite.ts
+[12:57:41.650]   /VERCEL_DEPLOYMENT_CHECKLIST.md
+[12:57:43.494] Running "vercel build"
+[12:57:43.965] Vercel CLI 44.6.4
+[12:57:44.667] Running "install" command: `npm install`...
+[12:57:52.333] 
+[12:57:52.334] added 429 packages, and audited 430 packages in 7s
+[12:57:52.335] 
+[12:57:52.335] 57 packages are looking for funding
+[12:57:52.336]   run `npm fund` for details
+[12:57:52.336] 
+[12:57:52.336] found 0 vulnerabilities
+[12:57:53.174] npm warn exec The following package was not found and will be installed: vite@7.0.6
+[12:57:58.263] [31mfailed to load config from /vercel/path0/vite.config.ts[39m
+[12:57:58.263] [31merror during build:
+[12:57:58.264] Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /vercel/path0/node_modules/.vite-temp/vite.config.ts.timestamp-1754132278260-21e06b7767a09.mjs
+[12:57:58.264]     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:256:9)
+[12:57:58.264]     at packageResolve (node:internal/modules/esm/resolve:768:81)
+[12:57:58.264]     at moduleResolve (node:internal/modules/esm/resolve:854:18)
+[12:57:58.270]     at defaultResolve (node:internal/modules/esm/resolve:984:11)
+[12:57:58.270]     at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+[12:57:58.270]     at #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+[12:57:58.270]     at ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+[12:57:58.270]     at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+[12:57:58.271]     at ModuleJob._link (node:internal/modules/esm/module_job:175:49)[39m
+[12:57:58.292] Error: Command "npx vite build" exited with 1
+[12:58:01.708] Exiting build container

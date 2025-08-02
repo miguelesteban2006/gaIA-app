@@ -1,0 +1,55 @@
+[12:53:30.778] Running build in Washington, D.C., USA (East) – iad1
+[12:53:30.778] Build machine configuration: 2 cores, 8 GB
+[12:53:30.796] Cloning github.com/miguelesteban2006/gaIA-app (Branch: main, Commit: 0e04a26)
+[12:53:30.821] Skipping build cache, deployment was triggered without cache.
+[12:53:31.057] Cloning completed: 260.000ms
+[12:53:31.087] Found .vercelignore
+[12:53:31.091] Removed 11 ignored files defined in .vercelignore
+[12:53:31.092]   /DEPLOYMENT.md
+[12:53:31.092]   /README.md
+[12:53:31.092]   /server/auth.ts
+[12:53:31.092]   /server/db.ts
+[12:53:31.092]   /server/index.ts
+[12:53:31.092]   /server/replitAuth.ts
+[12:53:31.092]   /server/routes.ts
+[12:53:31.092]   /server/storage.ts
+[12:53:31.092]   /server/vite.ts
+[12:53:31.092]   /VERCEL_DEPLOYMENT_CHECKLIST.md
+[12:53:32.881] Running "vercel build"
+[12:53:33.345] Vercel CLI 44.6.4
+[12:53:33.522] WARN! Due to `builds` existing in your configuration file, the Build and Development Settings defined in your Project Settings will not apply. Learn More: https://vercel.link/unused-build-settings
+[12:53:34.109] Installing dependencies...
+[12:53:38.574] npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+[12:53:38.680] npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+[12:53:43.020] 
+[12:53:43.021] added 526 packages in 9s
+[12:53:43.022] 
+[12:53:43.022] 71 packages are looking for funding
+[12:53:43.023]   run `npm fund` for details
+[12:53:43.077] Running "npm run build"
+[12:53:43.182] 
+[12:53:43.183] > rest-express@1.0.0 build
+[12:53:43.183] > vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+[12:53:43.183] 
+[12:53:43.457] [36mvite v6.3.5 [32mbuilding for production...[36m[39m
+[12:53:43.536] transforming...
+[12:53:43.811] Browserslist: browsers data (caniuse-lite) is 10 months old. Please run:
+[12:53:43.811]   npx update-browserslist-db@latest
+[12:53:43.812]   Why you should do it regularly: https://github.com/browserslist/update-db#readme
+[12:53:49.296] [32m✓[39m 2323 modules transformed.
+[12:53:49.852] rendering chunks...
+[12:53:49.864] computing gzip size...
+[12:53:49.886] [2m../dist/public/[22m[32mindex.html                 [39m[1m[2m  2.48 kB[22m[1m[22m[2m │ gzip:   1.00 kB[22m
+[12:53:49.886] [2m../dist/public/[22m[2massets/[22m[35mindex-Dk8vqZ-H.css  [39m[1m[2m 65.94 kB[22m[1m[22m[2m │ gzip:  11.58 kB[22m
+[12:53:49.887] [2m../dist/public/[22m[2massets/[22m[36mindex-DsgtB1hE.js   [39m[1m[33m715.17 kB[39m[22m[2m │ gzip: 212.06 kB[22m
+[12:53:49.891] [33m
+[12:53:49.891] (!) Some chunks are larger than 500 kB after minification. Consider:
+[12:53:49.891] - Using dynamic import() to code-split the application
+[12:53:49.892] - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+[12:53:49.892] - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[12:53:49.892] [32m✓ built in 6.40s[39m
+[12:53:49.945] ✘ [ERROR] The entry point "server/index.ts" cannot be marked as external
+[12:53:49.945] 
+[12:53:49.947] 1 error
+[12:53:49.957] Error: Command "npm run build" exited with 1
+[12:53:53.068] Exiting build container
