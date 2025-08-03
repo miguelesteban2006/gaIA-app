@@ -28,6 +28,7 @@ import {
   XCircle,
   Calendar
 } from "lucide-react";
+import { Link } from "wouter";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import type { ElderlyUser, HealthAlert } from "@shared/schema";
 
@@ -162,9 +163,12 @@ export default function Home() {
         {/* Elderly Users Selection */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Panel de Monitoreo
-            </h2>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                Panel de Monitoreo
+              </h2>
+
+            </div>
             <Dialog open={isAddElderlyDialogOpen} onOpenChange={setIsAddElderlyDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="w-full sm:w-auto">
@@ -225,9 +229,11 @@ export default function Home() {
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">
-                      {elderlyUser.firstName} {elderlyUser.lastName}
-                    </CardTitle>
+                    <Link href={`/elderly-users/${elderlyUser.id}`}>
+                      <CardTitle className="text-lg hover:text-purple-600 cursor-pointer transition-colors">
+                        {elderlyUser.firstName} {elderlyUser.lastName}
+                      </CardTitle>
+                    </Link>
                     <div className="flex items-center gap-2">
                       <div className="h-3 w-3 bg-green-500 rounded-full"></div>
                       <span className="text-sm text-gray-500">Activo</span>
@@ -275,7 +281,7 @@ export default function Home() {
                   <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent className="p-0 pt-2">
-                  <div className="text-lg sm:text-2xl font-bold">{(stats as any)?.avgMoodScore || 8}/10</div>
+                  <div className="text-lg sm:text-2xl font-bold">{(stats as any)?.avgMoodScore || '--'}/10</div>
                   <p className="text-xs text-muted-foreground">
                     Promedio
                   </p>

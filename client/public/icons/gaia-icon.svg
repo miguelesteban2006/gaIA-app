@@ -1,39 +1,28 @@
-<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <radialGradient id="mainGradient" cx="50%" cy="40%" r="60%">
-      <stop offset="0%" style="stop-color:#C084FC;stop-opacity:1" />
-      <stop offset="40%" style="stop-color:#A855F7;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
-    </radialGradient>
-    <radialGradient id="smallGradient" cx="50%" cy="30%" r="70%">
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E879F9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#F0ABFC;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#E879F9;stop-opacity:1" />
-    </radialGradient>
+      <stop offset="100%" style="stop-color:#D946EF;stop-opacity:1" />
+    </linearGradient>
   </defs>
   
-  <!-- Clean white background -->
-  <rect width="512" height="512" fill="white"/>
+  <!-- Fondo circular -->
+  <circle cx="96" cy="96" r="88" fill="white" stroke="#E5E7EB" stroke-width="2"/>
   
-  <!-- Small person/elderly (top left circle) -->
-  <circle cx="220" cy="140" r="32" fill="url(#smallGradient)"/>
+  <!-- Figura principal (cuerpo) -->
+  <ellipse cx="96" cy="120" rx="45" ry="40" fill="url(#gradient1)" transform="rotate(-15 96 120)"/>
   
-  <!-- Main embracing figure (large curved shape) -->
-  <!-- This recreates the curved embracing shape from your image -->
-  <path d="M180 170 
-           C 160 180, 150 200, 150 230
-           C 150 270, 170 310, 200 340
-           C 230 370, 270 380, 310 370
-           C 350 360, 380 340, 400 310
-           C 420 280, 425 240, 415 200
-           C 405 160, 380 130, 350 120
-           C 320 110, 290 120, 270 140
-           C 250 160, 240 180, 230 200
-           C 220 180, 200 170, 180 170 Z" 
-        fill="url(#mainGradient)"/>
+  <!-- Cabeza pequeña -->
+  <circle cx="75" cy="65" r="18" fill="url(#gradient2)"/>
   
-  <!-- Subtle highlight to match the original image -->
-  <ellipse cx="300" cy="200" rx="45" ry="35" fill="#C084FC" opacity="0.6"/>
+  <!-- Cabeza más grande -->
+  <circle cx="110" cy="45" r="22" fill="url(#gradient1)"/>
   
-  <!-- Small connecting detail -->
-  <circle cx="240" cy="160" r="8" fill="url(#smallGradient)" opacity="0.8"/>
+  <!-- Puntos de conexión/brazos -->
+  <circle cx="65" cy="85" r="8" fill="url(#gradient2)" opacity="0.8"/>
+  <circle cx="85" cy="95" r="6" fill="url(#gradient1)" opacity="0.6"/>
 </svg>

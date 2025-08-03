@@ -12,6 +12,7 @@ import {
   insertUserSchema,
   loginUserSchema,
   insertElderlyUserSchema,
+  updateElderlyUserSchema,
   insertInteractionSchema,
   insertHealthAlertSchema,
   insertUserElderlyRelationSchema,
@@ -20,6 +21,11 @@ import {
 // Use cloud storage services like Cloudinary or AWS S3 for file uploads
 
 export function registerRoutes(app: Express) {
+  
+  // Health check endpoint for PWA
+  app.get("/api/health", (req: Request, res: Response) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
   // Registro de usuario
   app.post("/api/register", async (req: Request, res: Response) => {
     try {
@@ -145,6 +151,53 @@ export function registerRoutes(app: Express) {
     } catch (error) {
       console.error("Get elderly users error:", error);
       res.status(500).json({ message: "Error interno del servidor" });
+    }
+  });
+
+  // Obtener un adulto mayor específico
+  app.get("/api/elderly-users/:elderlyUserId", authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+      const { elderlyUserId } = req.params;
+      const elderlyUser = await storage.getElderlyUser(elderlyUserId);
+      
+      if (!elderlyUser) {
+        return res.status(404).json({ message: "Adulto mayor no encontrado" });
+      }
+      
+      // Verificar que el usuario tiene permisos para ver este adulto mayor
+      const relations = await storage.getUserElderlyUsers(req.user.id);
+      const hasAccess = relations.some(relation => relation.id === elderlyUserId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "No tienes permisos para acceder a este perfil" });
+      }
+      
+      res.json(elderlyUser);
+    } catch (error) {
+      console.error("Get elderly user error:", error);
+      res.status(500).json({ message: "Error interno del servidor" });
+    }
+  });
+
+  // Actualizar perfil de adulto mayor
+  app.put("/api/elderly-users/:elderlyUserId", authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+      const { elderlyUserId } = req.params;
+      const updateData = updateElderlyUserSchema.parse(req.body);
+      
+      // Verificar que el usuario tiene permisos para editar este adulto mayor
+      const relations = await storage.getUserElderlyUsers(req.user.id);
+      const hasAccess = relations.some(relation => relation.id === elderlyUserId);
+      
+      if (!hasAccess) {
+        return res.status(403).json({ message: "No tienes permisos para editar este perfil" });
+      }
+      
+      const updatedElderlyUser = await storage.updateElderlyUser(elderlyUserId, updateData);
+      res.json(updatedElderlyUser);
+    } catch (error) {
+      console.error("Update elderly user error:", error);
+      res.status(500).json({ message: error instanceof Error ? error.message : "Error interno del servidor" });
     }
   });
 

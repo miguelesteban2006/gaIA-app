@@ -1,23 +1,38 @@
 import { useQuery } from "@tanstack/react-query";
+import { getAuthToken, clearAuthData, isTokenValid } from "@/lib/authUtils";
 
 export function useAuth() {
-  const token = localStorage.getItem('eldercompanion_token');
+  const token = getAuthToken();
   
-  const { data: user, isLoading } = useQuery({
+  // Verificar si el token es válido antes de hacer la consulta
+  const isValidToken = token ? isTokenValid(token) : false;
+  
+  const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
-    enabled: !!token, // Solo hacer la consulta si hay token
+    enabled: isValidToken, // Solo hacer la consulta si el token es válido
   });
 
+  // Si hay error en la autenticación o token inválido, limpiar datos
+  if ((error || !isValidToken) && token) {
+    console.log('Token inválido o error de autenticación, limpiando localStorage');
+    clearAuthData();
+    return {
+      user: null,
+      isLoading: false,
+      isAuthenticated: false,
+      logout: clearAuthData,
+    };
+  }
+
   const logout = () => {
-    localStorage.removeItem('eldercompanion_token');
-    window.location.reload();
+    clearAuthData();
   };
 
   return {
     user,
-    isLoading: token ? isLoading : false, // Si no hay token, no está cargando
-    isAuthenticated: !!user && !!token,
+    isLoading: isValidToken ? isLoading : false,
+    isAuthenticated: !!user && isValidToken && !error,
     logout,
   };
 }

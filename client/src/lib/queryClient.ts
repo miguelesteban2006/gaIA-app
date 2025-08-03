@@ -15,6 +15,11 @@ export async function apiRequest(
   data?: unknown
 ): Promise<Response> {
   const token = localStorage.getItem("eldercompanion_token");
+  
+  // Build the complete URL for mobile compatibility and deployment
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : url;
+  
   const headers: Record<string, string> = {
     'Accept': 'application/json',
   };
@@ -35,18 +40,30 @@ export async function apiRequest(
 
   // Improved error handling for network issues
   try {
-    const res = await fetch(url, {
+    const res = await fetch(fullUrl, {
       method,
       headers,
       body,
+      credentials: 'same-origin',
       // Add timeout and better error handling
-      signal: AbortSignal.timeout(30000), // 30 second timeout
+      signal: AbortSignal.timeout(15000), // 15 second timeout
     });
 
     await throwIfResNotOk(res);
     return res;
   } catch (error) {
-    console.error('API Request failed:', { method, url, error });
+    console.error('API Request failed:', { method, url: fullUrl, error });
+    
+    // Mensaje más claro para el usuario sobre problemas de conexión
+    if (error instanceof Error) {
+      if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
+        throw new Error('La aplicación necesita conexión al servidor. Verifica que el servidor esté ejecutándose.');
+      }
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        throw new Error('Sin conexión al servidor. Para usar la aplicación instalada, debe estar desplegada en producción.');
+      }
+    }
+    
     throw error;
   }
 }
@@ -55,6 +72,14 @@ export async function apiRequest(
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors
+        if (error?.message?.includes('4')) {
+          return false;
+        }
+        return failureCount < 2;
+      },
       queryFn: async ({ queryKey }) => {
         const response = await apiRequest("GET", queryKey[0] as string);
         return response.json();

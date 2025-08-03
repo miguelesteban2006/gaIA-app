@@ -72,6 +72,8 @@ npm run db:push     # Sincronizar esquema de base de datos
 ### Gestión de Adultos Mayores
 - `POST /api/elderly-users` - Crear perfil de adulto mayor
 - `GET /api/elderly-users` - Listar adultos mayores del usuario
+- `GET /api/elderly-users/:elderlyUserId` - Obtener perfil específico con información médica completa
+- `PUT /api/elderly-users/:elderlyUserId` - Actualizar perfil médico (info personal, medicaciones, diagnósticos, etc.)
 
 ### Interacciones y Monitoreo
 - `POST /api/interactions` - Registrar nueva interacción
@@ -124,7 +126,7 @@ npm run db:push     # Sincronizar esquema de base de datos
 - Dashboard con estadísticas en tiempo real
 - PWA con service worker y manifest
 
-## Recent Changes (Aug 2, 2025)
+## Recent Changes (Aug 3, 2025)
 
 ### MIGRACIÓN REPLIT AGENT → REPLIT COMPLETADA ✅
 
@@ -155,16 +157,69 @@ npm run db:push     # Sincronizar esquema de base de datos
 ### PERSONALIZACIÓN GAIA ✅
 
 - ✅ **Nombre cambiado**: ElderCompanion → GaIA
-- ✅ **Ícono personalizado**: Logo morado con figuras de cuidado
+- ✅ **Ícono personalizado**: Logo morado con figuras de cuidado (actualizado Aug 3, 2025)
 - ✅ **Tema actualizado**: Colores purple/morado en toda la app
 - ✅ **Optimización móvil**: Tamaños ajustados sin cambiar diseño
 - ✅ **Botones táctiles**: Mejor interacción en dispositivos móviles
 
+### SISTEMA DE PERFILES MÉDICOS COMPLETOS ✅
+
+- ✅ **Estado de salud**: Campo para estado general y antecedentes médicos
+- ✅ **Diagnósticos relevantes**: Array JSON para múltiples diagnósticos (demencia, Parkinson, etc.)
+- ✅ **Medicaciones actuales**: Sistema completo con nombre, dosis, horarios y notas
+- ✅ **Alergias y sensibilidades**: Arrays separados para alergias y sensibilidades
+- ✅ **Movilidad**: Estado de movilidad y ayudas técnicas (andador, silla de ruedas, etc.)
+- ✅ **Limitaciones sensoriales**: Estados de visión, audición y habla
+- ✅ **Instrucciones de cuidado**: Campo para instrucciones especiales y rutinas
+- ✅ **Página de perfil completa**: Interfaz de edición con validación y manejo de arrays
+- ✅ **API endpoints**: GET/PUT para obtener y actualizar perfiles médicos
+- ✅ **Navegación**: Enlaces desde dashboard principal a perfiles individuales
+
 ## Estado del Proyecto
 
-**✅ MIGRACIÓN A REPLIT COMPLETADA Y PWA CONFIGURADA**
+**✅ PROYECTO LISTO PARA DEPLOYMENT INDEPENDIENTE (AGOSTO 3, 2025)**
 
-El proyecto ElderCompanion ahora funciona perfectamente en Replit y está configurado como una PWA instalable en dispositivos móviles. Los usuarios pueden instalarla como una aplicación nativa desde el navegador móvil.
+- ✅ **Base de datos PostgreSQL**: Configurada automáticamente y funcionando
+- ✅ **Schema sincronizado**: Todas las tablas creadas con `npm run db:push`
+- ✅ **Servidor funcionando**: Express corriendo en puerto 5000 con Vite
+- ✅ **API endpoints**: Todos funcionando correctamente (auth, usuarios, interacciones)
+- ✅ **Datos de ejemplo**: Usuario María González con interacciones reales
+- ✅ **PWA móvil mejorada**: URLs absolutas y mejor compatibilidad móvil
+- ✅ **UI corregida**: Ánimo muestra datos reales en lugar de placeholder "8"
+- ✅ **Datos de ejemplo**: Usuario María González con interacciones reales
+- ✅ **Problemas PWA móvil resueltos**: Login y registro funcionan en móviles
+- ✅ **Ícono actualizado**: Nuevo diseño proporcionado por el usuario
+
+### CONFIGURACIÓN PARA DEPLOYMENT INDEPENDIENTE ✅
+
+- ✅ **Build de producción**: Optimizado con Vite y esbuild
+- ✅ **API mejorada**: URLs dinámicas para deployment y desarrollo
+- ✅ **Service Worker actualizado**: Cache inteligente y manejo offline
+- ✅ **Detector de conectividad**: Aviso cuando falta conexión al servidor
+- ✅ **Health check endpoint**: `/api/health` para verificar servidor
+- ✅ **Configuración PWA**: Lista para funcionar independientemente
+
+## ⚠️ INSTRUCCIONES PARA DESPLIEGUE ⚠️
+
+Para que la aplicación PWA funcione independientemente en móviles SIN necesidad de tener Replit abierto:
+
+**PASO 1: Desplegar en Replit Deployments**
+1. Haz clic en el botón "Deploy" en la parte superior de Replit
+2. Selecciona "Autoscale Deployment" (recomendado para apps web)
+3. Agrega método de pago si es necesario
+4. Espera a que el deployment se complete
+
+**PASO 2: Configurar Variables de Entorno**
+En el deployment, agregar estas variables:
+- `DATABASE_URL`: URL de PostgreSQL (se copiará automáticamente)
+- `JWT_SECRET`: Una clave secreta segura
+- `NODE_ENV`: production
+
+**PASO 3: Actualizar URL en PWA**
+Una vez deployado, la app estará disponible en `https://tu-proyecto.replit.app`
+Los usuarios pueden instalar la PWA desde esa URL y funcionará independientemente.
+
+El proyecto GaIA ahora está configurado para funcionar perfectamente tanto en desarrollo como en producción deployada.
 
 ## User Preferences
 

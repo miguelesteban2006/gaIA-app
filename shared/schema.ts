@@ -43,10 +43,47 @@ export const elderlyUsers = pgTable("elderly_users", {
   firstName: varchar("first_name").notNull(),
   lastName: varchar("last_name").notNull(),
   dateOfBirth: timestamp("date_of_birth"),
-  medicalConditions: text("medical_conditions"),
+  gender: varchar("gender"), // "male", "female", "other"
+  phoneNumber: varchar("phone_number"),
+  address: text("address"),
+  
+  // Estado de salud y antecedentes médicos
+  healthStatus: text("health_status"), // Estado general de salud
+  medicalHistory: text("medical_history"), // Antecedentes médicos generales
+  medicalConditions: text("medical_conditions"), // Mantener compatibilidad
+  
+  // Diagnósticos relevantes (JSON array)
+  diagnoses: jsonb("diagnoses").$type<string[]>(),
+  
+  // Medicaciones actuales (JSON array de objetos)
+  medications: jsonb("medications").$type<{
+    name: string;
+    dose: string;
+    schedule: string;
+    notes?: string;
+  }[]>(),
+  
+  // Alergias y sensibilidades (JSON arrays)
+  allergies: jsonb("allergies").$type<string[]>(),
+  sensitivities: jsonb("sensitivities").$type<string[]>(),
+  
+  // Movilidad y ayudas técnicas
+  mobilityStatus: varchar("mobility_status"), // "independent", "limited", "assisted", "wheelchair"
+  mobilityAids: jsonb("mobility_aids").$type<string[]>(), // andador, bastón, silla de ruedas, etc.
+  
+  // Limitaciones sensoriales
+  visionStatus: varchar("vision_status"), // "normal", "corrected", "limited", "blind"
+  hearingStatus: varchar("hearing_status"), // "normal", "corrected", "limited", "deaf"
+  speechStatus: varchar("speech_status"), // "normal", "limited", "non_verbal"
+  
+  // Información de contacto y cuidado
   emergencyContact: varchar("emergency_contact"),
+  careInstructions: text("care_instructions"),
+  
+  // Sistema de robot (mantener compatibilidad)
   robotId: varchar("robot_id").unique(), // ID del robot asignado
   isActive: varchar("is_active").default("true"),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -106,11 +143,23 @@ export const loginUserSchema = createInsertSchema(users).pick({
   password: true,
 });
 
+// Schema para medicación individual
+export const medicationSchema = z.object({
+  name: z.string().min(1, "Nombre de medicación requerido"),
+  dose: z.string().min(1, "Dosis requerida"),
+  schedule: z.string().min(1, "Horario requerido"),
+  notes: z.string().optional(),
+});
+
+// Schema completo para elderly users con validaciones detalladas
 export const insertElderlyUserSchema = createInsertSchema(elderlyUsers).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
+
+// Schema para actualizar elderly users
+export const updateElderlyUserSchema = insertElderlyUserSchema.partial();
 
 export const insertInteractionSchema = createInsertSchema(interactions).omit({
   id: true,

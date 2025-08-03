@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { setAuthToken, clearAuthData } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,25 @@ import { Heart, Shield, Brain, Users, Bot, Activity } from "lucide-react";
 export default function Landing() {
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
+
+  // Limpiar cualquier token inválido al cargar la página de login
+  useEffect(() => {
+    // Verificar si hay un token inválido y limpiarlo
+    const token = localStorage.getItem('eldercompanion_token');
+    if (token) {
+      // Verificar estructura básica del token
+      try {
+        const parts = token.split('.');
+        if (parts.length !== 3) {
+          console.log('Token con formato inválido, limpiando');
+          localStorage.removeItem('eldercompanion_token');
+        }
+      } catch {
+        console.log('Error al verificar token, limpiando');
+        localStorage.removeItem('eldercompanion_token');
+      }
+    }
+  }, []);
   
   const authMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -21,7 +41,7 @@ export default function Landing() {
       return response.json();
     },
     onSuccess: (data) => {
-      localStorage.setItem('eldercompanion_token', data.token);
+      setAuthToken(data.token);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
         title: "¡Bienvenido a GaIA!",

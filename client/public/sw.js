@@ -1,8 +1,17 @@
 // Service Worker para GaIA PWA
-const CACHE_NAME = 'gaia-v8';
+const CACHE_NAME = 'gaia-v11';
 const STATIC_CACHE_URLS = [
   '/',
-  '/manifest.json'
+  '/manifest.json',
+  '/icons/gaia-icon.png',
+  '/icons/gaia-icon.svg'
+];
+
+// URLs que no se deben cachear 
+const NEVER_CACHE = [
+  '/api/auth/user',
+  '/api/login',
+  '/api/register'
 ];
 
 // Instalar Service Worker
@@ -44,13 +53,15 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // API requests - Network First
+  // API requests - Network First (excepto auth que nunca se cachea)
   if (url.pathname.startsWith('/api/')) {
+    const shouldNeverCache = NEVER_CACHE.some(path => url.pathname.startsWith(path));
+    
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // Cache successful API responses
-          if (response.ok) {
+          // Cache successful API responses (excepto auth)
+          if (response.ok && !shouldNeverCache) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(request, responseClone);
