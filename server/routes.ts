@@ -49,9 +49,11 @@ export function registerRoutes(app: Express) {
       res.status(201).json({ token, user: userResponse });
     } catch (error) {
       console.error("Registration error:", error);
-      res
-        .status(500)
-        .json({ message: error instanceof Error ? error.message : "Error interno del servidor" });
+      const message = error instanceof Error ? error.message : "Error interno del servidor";
+      res.status(500).json({ 
+        message, 
+        error: process.env.NODE_ENV === 'development' ? error : undefined 
+      });
     }
   });
 
@@ -112,7 +114,13 @@ export function registerRoutes(app: Express) {
   // Rutas de usuarios mayores
   app.post("/api/elderly-users", authenticateToken, async (req: AuthRequest, res: Response) => {
     try {
-      const elderlyUserData = insertElderlyUserSchema.parse(req.body);
+      const rawData = req.body;
+      // Transform dateOfBirth string to Date if provided
+      if (rawData.dateOfBirth) {
+        rawData.dateOfBirth = new Date(rawData.dateOfBirth);
+      }
+      
+      const elderlyUserData = insertElderlyUserSchema.parse(rawData);
       const elderlyUser = await storage.createElderlyUser(elderlyUserData);
       
       // Crear relación con el usuario que lo registra

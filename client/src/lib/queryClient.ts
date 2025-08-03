@@ -15,7 +15,9 @@ export async function apiRequest(
   data?: unknown
 ): Promise<Response> {
   const token = localStorage.getItem("eldercompanion_token");
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+  };
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -31,14 +33,22 @@ export async function apiRequest(
     }
   }
 
-  const res = await fetch(url, {
-    method,
-    headers,
-    body,
-  });
+  // Improved error handling for network issues
+  try {
+    const res = await fetch(url, {
+      method,
+      headers,
+      body,
+      // Add timeout and better error handling
+      signal: AbortSignal.timeout(30000), // 30 second timeout
+    });
 
-  await throwIfResNotOk(res);
-  return res;
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error('API Request failed:', { method, url, error });
+    throw error;
+  }
 }
 
 // Configurar el QueryClient con fetcher por defecto

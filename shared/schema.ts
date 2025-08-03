@@ -129,13 +129,59 @@ export const insertUserElderlyRelationSchema = createInsertSchema(userElderlyRel
 
 // Types
 export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type LoginUser = z.infer<typeof loginUserSchema>;
+export type InsertUser = {
+  email: string;
+  password: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  role?: string;
+  phoneNumber?: string | null;
+};
+export type LoginUser = {
+  email: string;
+  password: string;
+};
 export type ElderlyUser = typeof elderlyUsers.$inferSelect;
-export type InsertElderlyUser = z.infer<typeof insertElderlyUserSchema>;
+export type InsertElderlyUser = {
+  firstName: string;
+  lastName: string;
+  dateOfBirth?: Date | null;
+  medicalConditions?: string | null;
+  emergencyContact?: string | null;
+  robotId?: string | null;
+  isActive?: string | null;
+};
 export type Interaction = typeof interactions.$inferSelect;
-export type InsertInteraction = z.infer<typeof insertInteractionSchema>;
+export type InsertInteraction = {
+  elderlyUserId: string;
+  interactionType: string;
+  audioUrl?: string | null;
+  transcription?: string | null;
+  sentimentScore?: number | null;
+  sentimentLabel?: string | null;
+  moodScore?: number | null;
+  cognitiveScore?: number | null;
+  healthIndicators?: string | null;
+  alertLevel?: string | null;
+  duration: number;
+  robotResponse?: string | null;
+  notes?: string | null;
+};
 export type HealthAlert = typeof healthAlerts.$inferSelect;
-export type InsertHealthAlert = z.infer<typeof insertHealthAlertSchema>;
+export type InsertHealthAlert = {
+  elderlyUserId: string;
+  alertType: string;
+  severity: string;
+  title: string;
+  description: string;
+  isResolved?: string | null;
+  resolvedBy?: string | null;
+  resolvedAt?: Date | null;
+};
 export type UserElderlyRelation = typeof userElderlyRelations.$inferSelect;
-export type InsertUserElderlyRelation = z.infer<typeof insertUserElderlyRelationSchema>;
+export type InsertUserElderlyRelation = {
+  userId: string;
+  elderlyUserId: string;
+  relationshipType: string;
+  permissions?: string;
+};

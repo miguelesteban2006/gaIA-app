@@ -133,77 +133,77 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
       {/* Navigation Header */}
-      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Bot className="h-8 w-8 text-blue-600 mr-3" />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              ElderCompanion
+      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16">
+          <div className="flex items-center min-w-0">
+            <Bot className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mr-2 sm:mr-3 flex-shrink-0" />
+            <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent truncate">
+              GaIA
             </h1>
-            <Badge variant="secondary" className="ml-3">
+            <Badge variant="secondary" className="ml-2 sm:ml-3 text-xs hidden sm:inline-flex">
               {(user as any)?.role === 'family' ? 'Familiar' : (user as any)?.role === 'medical' ? 'Médico' : 'Cuidador'}
             </Badge>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="text-sm">
+          <div className="flex items-center">
+            <div className="text-xs hidden lg:block mr-3">
               <p className="font-medium text-gray-900 dark:text-gray-100">
-                {(user as any)?.firstName} {(user as any)?.lastName}
+                {(user as any)?.firstName}
               </p>
-              <p className="text-gray-500 dark:text-gray-400">{(user as any)?.email}</p>
             </div>
-            <Button variant="outline" size="sm" onClick={logout}>
-              Cerrar Sesión
+            <Button variant="outline" size="sm" onClick={logout} className="text-xs px-3 py-2">
+              Salir
             </Button>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 sm:py-8 max-w-7xl">
         {/* Elderly Users Selection */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
               Panel de Monitoreo
             </h2>
             <Dialog open={isAddElderlyDialogOpen} onOpenChange={setIsAddElderlyDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
-                  Agregar Adulto Mayor
+                  <span className="hidden sm:inline">Agregar Adulto Mayor</span>
+                  <span className="sm:hidden">Agregar</span>
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Nuevo Perfil de Adulto Mayor</DialogTitle>
-                  <DialogDescription>
-                    Agrega un nuevo adulto mayor al sistema de monitoreo GaIA
+              <DialogContent className="w-[95vw] max-w-sm mx-auto max-h-[85vh] overflow-y-auto p-4">
+                <DialogHeader className="pb-4">
+                  <DialogTitle className="text-lg">Nuevo Perfil</DialogTitle>
+                  <DialogDescription className="text-sm">
+                    Agrega un adulto mayor al sistema
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleAddElderly} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     <div>
-                      <Label htmlFor="firstName">Nombre</Label>
-                      <Input id="firstName" name="firstName" required />
+                      <Label htmlFor="firstName" className="text-sm">Nombre</Label>
+                      <Input id="firstName" name="firstName" required className="mt-1" />
                     </div>
                     <div>
-                      <Label htmlFor="lastName">Apellido</Label>
-                      <Input id="lastName" name="lastName" required />
+                      <Label htmlFor="lastName" className="text-sm">Apellido</Label>
+                      <Input id="lastName" name="lastName" required className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="dateOfBirth" className="text-sm">Fecha de Nacimiento</Label>
+                      <Input id="dateOfBirth" name="dateOfBirth" type="date" required className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="medicalConditions" className="text-sm">Condiciones Médicas</Label>
+                      <Input id="medicalConditions" name="medicalConditions" placeholder="Diabetes, etc." className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="emergencyContact" className="text-sm">Contacto de Emergencia</Label>
+                      <Input id="emergencyContact" name="emergencyContact" placeholder="Teléfono" className="mt-1" />
                     </div>
                   </div>
-                  <div>
-                    <Label htmlFor="dateOfBirth">Fecha de Nacimiento</Label>
-                    <Input id="dateOfBirth" name="dateOfBirth" type="date" required />
-                  </div>
-                  <div>
-                    <Label htmlFor="medicalConditions">Condiciones Médicas</Label>
-                    <Input id="medicalConditions" name="medicalConditions" placeholder="Diabetes, hipertensión, etc." />
-                  </div>
-                  <div>
-                    <Label htmlFor="emergencyContact">Contacto de Emergencia</Label>
-                    <Input id="emergencyContact" name="emergencyContact" placeholder="Teléfono de emergencia" />
-                  </div>
-                  <Button type="submit" disabled={addElderlyMutation.isPending}>
+                  <Button type="submit" disabled={addElderlyMutation.isPending} className="w-full mt-6">
                     {addElderlyMutation.isPending ? "Creando..." : "Crear Perfil"}
                   </Button>
                 </form>
@@ -212,7 +212,7 @@ export default function Home() {
           </div>
 
           {/* Elderly Users Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
             {Array.isArray(elderlyUsers) ? elderlyUsers.map((elderlyUser: ElderlyUser) => (
               <Card 
                 key={elderlyUser.id} 
@@ -251,61 +251,61 @@ export default function Home() {
         {selectedElderlyUser ? (
           <>
             {/* Stats Cards */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Interacciones Hoy
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-8">
+              <Card className="p-3 lg:p-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
+                  <CardTitle className="text-xs sm:text-sm font-medium">
+                    Interacciones
                   </CardTitle>
-                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                  <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{(stats as any)?.totalInteractions || 0}</div>
+                <CardContent className="p-0 pt-2">
+                  <div className="text-lg sm:text-2xl font-bold">{(stats as any)?.totalInteractions || 0}</div>
                   <p className="text-xs text-muted-foreground">
                     +2 desde ayer
                   </p>
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Estado de Ánimo
+              <Card className="p-3 lg:p-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
+                  <CardTitle className="text-xs sm:text-sm font-medium">
+                    Ánimo
                   </CardTitle>
-                  <Heart className="h-4 w-4 text-muted-foreground" />
+                  <Heart className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{(stats as any)?.avgMoodScore || 8}/10</div>
+                <CardContent className="p-0 pt-2">
+                  <div className="text-lg sm:text-2xl font-bold">{(stats as any)?.avgMoodScore || 8}/10</div>
                   <p className="text-xs text-muted-foreground">
-                    Promedio de la semana
+                    Promedio
                   </p>
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Alertas Activas
+              <Card className="p-3 lg:p-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
+                  <CardTitle className="text-xs sm:text-sm font-medium">
+                    Alertas
                   </CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+                  <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">{(stats as any)?.alertsCount || 0}</div>
+                <CardContent className="p-0 pt-2">
+                  <div className="text-lg sm:text-2xl font-bold text-red-600">{(stats as any)?.alertsCount || 0}</div>
                   <p className="text-xs text-muted-foreground">
-                    Requieren atención
+                    Activas
                   </p>
                 </CardContent>
               </Card>
               
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Tiempo de Interacción
+              <Card className="p-3 lg:p-6">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-0">
+                  <CardTitle className="text-xs sm:text-sm font-medium">
+                    Tiempo
                   </CardTitle>
-                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{Math.round(((stats as any)?.totalDuration || 0) / 60)}min</div>
+                <CardContent className="p-0 pt-2">
+                  <div className="text-lg sm:text-2xl font-bold">{Math.round(((stats as any)?.totalDuration || 0) / 60)}min</div>
                   <p className="text-xs text-muted-foreground">
                     Total hoy
                   </p>
@@ -314,19 +314,19 @@ export default function Home() {
             </div>
 
             {/* Charts and Data */}
-            <div className="grid lg:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8 mb-8">
               {/* Sentiment Chart */}
               <Card>
                 <CardHeader>
                   <CardTitle>Evolución del Estado de Ánimo</CardTitle>
                   <CardDescription>Últimos 30 días</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                <CardContent className="p-4">
+                  <ResponsiveContainer width="100%" height={250}>
                     <LineChart data={(sentimentData as any) || []}>
                       <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[0, 10]} />
+                      <XAxis dataKey="date" fontSize={12} />
+                      <YAxis domain={[0, 10]} fontSize={12} />
                       <Tooltip />
                       <Line 
                         type="monotone" 

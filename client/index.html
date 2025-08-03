@@ -3,15 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>ElderCompanion - Cuidado Inteligente para Adultos Mayores</title>
+    <title>GaIA - Cuidado Inteligente para Adultos Mayores</title>
     <meta name="description" content="Sistema inteligente de monitoreo y cuidado para adultos mayores con asistentes robóticos y análisis de bienestar" />
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" content="#A855F7" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="ElderCompanion" />
+    <link rel="apple-touch-icon" href="/icons/gaia-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/gaia-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="GaIA" />
     
     <!-- Fonts and Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,7 +22,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     
     <!-- Open Graph Tags -->
-    <meta property="og:title" content="ElderCompanion - Cuidado Inteligente para Adultos Mayores" />
+    <meta property="og:title" content="GaIA - Cuidado Inteligente para Adultos Mayores" />
     <meta property="og:description" content="Sistema inteligente de monitoreo y cuidado para adultos mayores con asistentes robóticos" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="/" />
@@ -37,10 +39,11 @@
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('/sw.js')
             .then(function(registration) {
-              console.log('SW registered: ', registration);
+              console.log('GaIA SW registered successfully');
+              return registration.update();
             })
             .catch(function(registrationError) {
-              console.log('SW registration failed: ', registrationError);
+              console.log('GaIA SW registration failed: ', registrationError);
             });
         });
       }

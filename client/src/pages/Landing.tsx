@@ -24,7 +24,7 @@ export default function Landing() {
       localStorage.setItem('eldercompanion_token', data.token);
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       toast({
-        title: "¡Bienvenido a ElderCompanion!",
+        title: "¡Bienvenido a GaIA!",
         description: isLogin ? "Has iniciado sesión correctamente" : "Tu cuenta ha sido creada exitosamente",
       });
       // Force a page reload to refresh auth state
@@ -67,9 +67,15 @@ export default function Landing() {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <div className="flex justify-center items-center gap-3 mb-6">
-            <Bot className="h-12 w-12 text-blue-600" />
-            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-              ElderCompanion
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
+              <svg viewBox="0 0 32 32" className="w-10 h-10 fill-white">
+                <ellipse cx="18" cy="12" rx="6" ry="8" transform="rotate(-15 18 12)"/>
+                <circle cx="14" cy="9" r="3"/>
+                <path d="M15 10 Q16 11 17 12" stroke="white" strokeWidth="1" fill="none"/>
+              </svg>
+            </div>
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
+              GaIA
             </h1>
           </div>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -78,7 +84,7 @@ export default function Landing() {
           </p>
           
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="grid md:grid-cols-3 gap-8 mb-16 px-4 md:px-0">
             <div className="text-center">
               <Heart className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Cuidado Emocional</h3>
@@ -120,7 +126,7 @@ export default function Landing() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName">Nombre</Label>
                         <Input
@@ -182,7 +188,7 @@ export default function Landing() {
 
                 <Button 
                   type="submit" 
-                  className="w-full"
+                  className="w-full btn-mobile"
                   disabled={authMutation.isPending}
                 >
                   {authMutation.isPending 
