@@ -68,12 +68,12 @@ export default function Home() {
       const response = await apiRequest("POST", "/api/elderly-users", data);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newUser) => {
       queryClient.invalidateQueries({ queryKey: ["/api/elderly-users"] });
       setIsAddElderlyDialogOpen(false);
       toast({
-        title: "Adulto mayor agregado",
-        description: "Se ha creado el perfil exitosamente",
+        title: "Perfil creado exitosamente",
+        description: "Ahora puedes completar la información médica detallada en el perfil",
       });
     },
     onError: (error: Error) => {
@@ -181,7 +181,7 @@ export default function Home() {
                 <DialogHeader className="pb-4">
                   <DialogTitle className="text-lg">Nuevo Perfil</DialogTitle>
                   <DialogDescription className="text-sm">
-                    Agrega un adulto mayor al sistema
+                    Agrega un adulto mayor al sistema. Podrás completar la información médica detallada después.
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleAddElderly} className="space-y-4">

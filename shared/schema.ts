@@ -158,8 +158,31 @@ export const insertElderlyUserSchema = createInsertSchema(elderlyUsers).omit({
   updatedAt: true,
 });
 
-// Schema para actualizar elderly users
-export const updateElderlyUserSchema = insertElderlyUserSchema.partial();
+// Schema personalizado para actualizar elderly users que maneja fechas como strings
+export const updateElderlyUserSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  dateOfBirth: z.union([z.date(), z.string().transform(str => new Date(str))]).optional().nullable(),
+  gender: z.string().optional().nullable(),
+  phoneNumber: z.string().optional().nullable(),
+  address: z.string().optional().nullable(),
+  healthStatus: z.string().optional().nullable(),
+  medicalHistory: z.string().optional().nullable(),
+  medicalConditions: z.string().optional().nullable(),
+  diagnoses: z.array(z.string()).optional().nullable(),
+  medications: z.array(medicationSchema).optional().nullable(),
+  allergies: z.array(z.string()).optional().nullable(),
+  sensitivities: z.array(z.string()).optional().nullable(),
+  mobilityStatus: z.string().optional().nullable(),
+  mobilityAids: z.array(z.string()).optional().nullable(),
+  visionStatus: z.string().optional().nullable(),
+  hearingStatus: z.string().optional().nullable(),
+  speechStatus: z.string().optional().nullable(),
+  emergencyContact: z.string().optional().nullable(),
+  careInstructions: z.string().optional().nullable(),
+  robotId: z.string().optional().nullable(),
+  isActive: z.string().optional().nullable(),
+}).partial();
 
 export const insertInteractionSchema = createInsertSchema(interactions).omit({
   id: true,

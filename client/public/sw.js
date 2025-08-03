@@ -1,17 +1,27 @@
-// Service Worker para GaIA PWA
-const CACHE_NAME = 'gaia-v11';
+// Service Worker para GaIA PWA - Optimizado para funcionamiento independiente
+const CACHE_NAME = 'gaia-v12-optimized';
 const STATIC_CACHE_URLS = [
   '/',
   '/manifest.json',
   '/icons/gaia-icon.png',
-  '/icons/gaia-icon.svg'
+  '/icons/gaia-icon.svg',
+  '/assets/index.css',
+  '/assets/index.js'
 ];
 
-// URLs que no se deben cachear 
+// URLs que requieren red activa (autenticación crítica)
 const NEVER_CACHE = [
-  '/api/auth/user',
   '/api/login',
   '/api/register'
+];
+
+// Datos que se pueden mostrar desde cache en modo offline
+const CACHE_FRIENDLY_API = [
+  '/api/elderly-users',
+  '/api/interactions',
+  '/api/stats',
+  '/api/sentiment',
+  '/api/health-alerts'
 ];
 
 // Instalar Service Worker
@@ -53,27 +63,62 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // API requests - Network First (excepto auth que nunca se cachea)
+  // API requests - Estrategia inteligente para funcionamiento independiente
   if (url.pathname.startsWith('/api/')) {
     const shouldNeverCache = NEVER_CACHE.some(path => url.pathname.startsWith(path));
+    const isCacheFriendly = CACHE_FRIENDLY_API.some(path => url.pathname.startsWith(path));
     
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Cache successful API responses (excepto auth)
-          if (response.ok && !shouldNeverCache) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
+    if (shouldNeverCache) {
+      // Auth endpoints requieren red activa
+      event.respondWith(fetch(request));
+    } else if (isCacheFriendly) {
+      // Datos del usuario: Cache First para funcionamiento offline
+      event.respondWith(
+        caches.match(request).then((cached) => {
+          if (cached) {
+            // Actualizar cache en background si hay red
+            fetch(request).then((response) => {
+              if (response.ok) {
+                caches.open(CACHE_NAME).then((cache) => {
+                  cache.put(request, response.clone());
+                });
+              }
+            }).catch(() => {});
+            return cached;
           }
-          return response;
+          // Si no hay cache, intentar red
+          return fetch(request).then((response) => {
+            if (response.ok) {
+              const responseClone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseClone);
+              });
+            }
+            return response;
+          });
         })
-        .catch(() => {
-          // Fallback to cache if network fails
-          return caches.match(request);
-        })
-    );
+      );
+    } else {
+      // Otros endpoints: Network First con fallback a cache
+      event.respondWith(
+        fetch(request)
+          .then((response) => {
+            if (response.ok) {
+              const responseClone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseClone);
+              });
+            }
+            return response;
+          })
+          .catch(() => {
+            return caches.match(request) || new Response(
+              JSON.stringify({ error: 'Sin conexión. Funcionalidad limitada disponible.' }),
+              { status: 503, headers: { 'Content-Type': 'application/json' } }
+            );
+          })
+      );
+    }
     return;
   }
 

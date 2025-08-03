@@ -183,7 +183,6 @@ export function registerRoutes(app: Express) {
   app.put("/api/elderly-users/:elderlyUserId", authenticateToken, async (req: AuthRequest, res: Response) => {
     try {
       const { elderlyUserId } = req.params;
-      const updateData = updateElderlyUserSchema.parse(req.body);
       
       // Verificar que el usuario tiene permisos para editar este adulto mayor
       const relations = await storage.getUserElderlyUsers(req.user.id);
@@ -191,6 +190,33 @@ export function registerRoutes(app: Express) {
       
       if (!hasAccess) {
         return res.status(403).json({ message: "No tienes permisos para editar este perfil" });
+      }
+      
+      // Procesar y limpiar los datos de actualización
+      const rawData = req.body;
+      const updateData: any = {};
+      
+      // Solo copiar campos que realmente necesitamos actualizar y que no son problemáticos
+      const allowedFields = [
+        'firstName', 'lastName', 'gender', 'phoneNumber', 'address',
+        'healthStatus', 'medicalHistory', 'medicalConditions',
+        'diagnoses', 'medications', 'allergies', 'sensitivities',
+        'mobilityStatus', 'mobilityAids', 'visionStatus', 'hearingStatus', 'speechStatus',
+        'emergencyContact', 'careInstructions', 'robotId', 'isActive'
+      ];
+      
+      allowedFields.forEach(field => {
+        if (rawData[field] !== undefined) {
+          updateData[field] = rawData[field];
+        }
+      });
+      
+      // Manejar fecha de nacimiento especialmente
+      if (rawData.dateOfBirth && typeof rawData.dateOfBirth === 'string') {
+        const date = new Date(rawData.dateOfBirth);
+        if (!isNaN(date.getTime())) {
+          updateData.dateOfBirth = date;
+        }
       }
       
       const updatedElderlyUser = await storage.updateElderlyUser(elderlyUserId, updateData);

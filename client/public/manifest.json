@@ -2,7 +2,7 @@
   "name": "GaIA",
   "short_name": "GaIA", 
   "description": "Aplicación para el cuidado y monitoreo de adultos mayores",
-  "start_url": "/?utm_source=pwa",
+  "start_url": "/?standalone=true",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#ffffff",

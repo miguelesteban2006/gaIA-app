@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
-import { OfflineNotice } from "@/components/OfflineNotice";
+import { NetworkStatus } from "@/components/NetworkStatus";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
@@ -41,18 +41,16 @@ function Router() {
   );
 }
 
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="fixed top-4 left-4 right-4 z-50">
-          <OfflineNotice />
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
+          <NetworkStatus />
+          <Router />
+          <Toaster />
         </div>
-        <Toaster />
-        <Router />
       </TooltipProvider>
     </QueryClientProvider>
   );
 }
-
-export default App;

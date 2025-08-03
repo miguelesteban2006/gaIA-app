@@ -29,7 +29,7 @@ export interface IStorage {
   // Elderly user operations
   getElderlyUser(id: string): Promise<ElderlyUser | undefined>;
   createElderlyUser(elderlyUser: InsertElderlyUser): Promise<ElderlyUser>;
-  updateElderlyUser(id: string, data: Partial<typeof elderlyUsers.$inferInsert>): Promise<ElderlyUser>;
+  updateElderlyUser(id: string, data: Partial<ElderlyUser>): Promise<ElderlyUser>;
   getUserElderlyUsers(userId: string): Promise<ElderlyUser[]>;
   
   // Interaction operations
@@ -95,7 +95,7 @@ export class DatabaseStorage implements IStorage {
     return elderlyUser;
   }
 
-  async updateElderlyUser(id: string, data: Partial<typeof elderlyUsers.$inferInsert>): Promise<ElderlyUser> {
+  async updateElderlyUser(id: string, data: Partial<ElderlyUser>): Promise<ElderlyUser> {
     const [elderlyUser] = await db
       .update(elderlyUsers)
       .set({

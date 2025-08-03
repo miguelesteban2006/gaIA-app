@@ -435,6 +435,7 @@ export default function ElderlyUserProfile() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Alergias */}
             <div>
               <Label>Alergias</Label>
               <div className="flex flex-wrap gap-2 mb-2">
@@ -443,7 +444,7 @@ export default function ElderlyUserProfile() {
                     {allergy}
                     {isEditing && (
                       <X
-                        className="h-3 w-3 cursor-pointer hover:text-red-300"
+                        className="h-3 w-3 cursor-pointer hover:text-red-700"
                         onClick={() => removeArrayItem('allergies', index)}
                       />
                     )}
@@ -477,11 +478,12 @@ export default function ElderlyUserProfile() {
               )}
             </div>
 
+            {/* Sensibilidades */}
             <div>
               <Label>Sensibilidades</Label>
               <div className="flex flex-wrap gap-2 mb-2">
                 {formData.sensitivities?.map((sensitivity, index) => (
-                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                  <Badge key={index} variant="outline" className="flex items-center gap-1">
                     {sensitivity}
                     {isEditing && (
                       <X
@@ -521,129 +523,129 @@ export default function ElderlyUserProfile() {
           </CardContent>
         </Card>
 
-        {/* Movilidad y Limitaciones Sensoriales */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Movilidad */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Accessibility className="h-5 w-5" />
-                Movilidad
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Estado de Movilidad</Label>
-                <Select 
-                  value={formData.mobilityStatus || ""} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, mobilityStatus: value }))}
-                  disabled={!isEditing}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="independent">Independiente</SelectItem>
-                    <SelectItem value="limited">Limitada</SelectItem>
-                    <SelectItem value="assisted">Asistida</SelectItem>
-                    <SelectItem value="wheelchair">Silla de ruedas</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* Movilidad y Ayudas Técnicas */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Accessibility className="h-5 w-5" />
+              Movilidad y Ayudas Técnicas
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="mobilityStatus">Estado de Movilidad</Label>
+              <Select 
+                value={formData.mobilityStatus || ""} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, mobilityStatus: value }))}
+                disabled={!isEditing}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar estado de movilidad" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="independent">Independiente</SelectItem>
+                  <SelectItem value="limited">Limitada</SelectItem>
+                  <SelectItem value="assisted">Con asistencia</SelectItem>
+                  <SelectItem value="wheelchair">Silla de ruedas</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div>
-                <Label>Ayudas Técnicas</Label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.mobilityAids?.map((aid, index) => (
-                    <Badge key={index} variant="outline" className="flex items-center gap-1">
-                      {aid}
-                      {isEditing && (
-                        <X
-                          className="h-3 w-3 cursor-pointer hover:text-red-500"
-                          onClick={() => removeArrayItem('mobilityAids', index)}
-                        />
-                      )}
-                    </Badge>
-                  ))}
+            {/* Ayudas Técnicas */}
+            <div>
+              <Label>Ayudas Técnicas</Label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {formData.mobilityAids?.map((aid, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    {aid}
+                    {isEditing && (
+                      <X
+                        className="h-3 w-3 cursor-pointer hover:text-red-500"
+                        onClick={() => removeArrayItem('mobilityAids', index)}
+                      />
+                    )}
+                  </Badge>
+                ))}
+              </div>
+              {isEditing && (
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Nueva ayuda técnica (andador, bastón, etc.)"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addArrayItem('mobilityAids', e.currentTarget.value);
+                        e.currentTarget.value = '';
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={(e) => {
+                      const input = e.currentTarget.previousElementSibling as HTMLInputElement;
+                      addArrayItem('mobilityAids', input.value);
+                      input.value = '';
+                    }}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 </div>
-                {isEditing && (
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Ej: Andador, bastón..."
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addArrayItem('mobilityAids', e.currentTarget.value);
-                          e.currentTarget.value = '';
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={(e) => {
-                        const input = e.currentTarget.previousElementSibling as HTMLInputElement;
-                        addArrayItem('mobilityAids', input.value);
-                        input.value = '';
-                      }}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-          {/* Limitaciones Sensoriales */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="h-5 w-5" />
-                Limitaciones Sensoriales
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        {/* Limitaciones Sensoriales */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              Limitaciones Sensoriales
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label>Visión</Label>
+                <Label htmlFor="visionStatus">Estado de Visión</Label>
                 <Select 
                   value={formData.visionStatus || ""} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, visionStatus: value }))}
                   disabled={!isEditing}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Estado de la visión" />
+                    <SelectValue placeholder="Estado de visión" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="corrected">Corregida (lentes)</SelectItem>
+                    <SelectItem value="corrected">Corregida (gafas/lentes)</SelectItem>
                     <SelectItem value="limited">Limitada</SelectItem>
-                    <SelectItem value="blind">Ciega</SelectItem>
+                    <SelectItem value="blind">Ceguera</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>Audición</Label>
+                <Label htmlFor="hearingStatus">Estado de Audición</Label>
                 <Select 
                   value={formData.hearingStatus || ""} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, hearingStatus: value }))}
                   disabled={!isEditing}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Estado de la audición" />
+                    <SelectValue placeholder="Estado de audición" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="normal">Normal</SelectItem>
                     <SelectItem value="corrected">Corregida (audífono)</SelectItem>
                     <SelectItem value="limited">Limitada</SelectItem>
-                    <SelectItem value="deaf">Sorda</SelectItem>
+                    <SelectItem value="deaf">Sordera</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label>Habla</Label>
+                <Label htmlFor="speechStatus">Estado del Habla</Label>
                 <Select 
                   value={formData.speechStatus || ""} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, speechStatus: value }))}
@@ -659,32 +661,36 @@ export default function ElderlyUserProfile() {
                   </SelectContent>
                 </Select>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Instrucciones de Cuidado */}
         <Card>
           <CardHeader>
             <CardTitle>Instrucciones de Cuidado</CardTitle>
             <CardDescription>
-              Información adicional importante para el cuidado diario
+              Instrucciones especiales, rutinas y consideraciones importantes para el cuidado
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={formData.careInstructions || ""}
-              onChange={(e) => setFormData(prev => ({ ...prev, careInstructions: e.target.value }))}
-              disabled={!isEditing}
-              placeholder="Instrucciones especiales de cuidado, rutinas importantes, precauciones..."
-              rows={4}
-            />
+            <div>
+              <Label htmlFor="careInstructions">Instrucciones Especiales</Label>
+              <Textarea
+                id="careInstructions"
+                value={formData.careInstructions || ""}
+                onChange={(e) => setFormData(prev => ({ ...prev, careInstructions: e.target.value }))}
+                disabled={!isEditing}
+                placeholder="Rutinas especiales, precauciones, preferencias de cuidado..."
+                rows={4}
+              />
+            </div>
           </CardContent>
         </Card>
 
-        {/* Botones de acción */}
+        {/* Botones de Acción */}
         {isEditing && (
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-4">
             <Button
               type="button"
               variant="outline"

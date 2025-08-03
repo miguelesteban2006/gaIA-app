@@ -20,6 +20,13 @@ export async function apiRequest(
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : url;
   
+  // Detector de conectividad mejorado
+  const isOnline = navigator.onLine;
+  if (!isOnline && !url.includes('/api/auth/user')) {
+    // Mostrar indicador de offline para requests no críticos
+    console.log('📱 Modo offline - usando datos en cache');
+  }
+  
   const headers: Record<string, string> = {
     'Accept': 'application/json',
   };
