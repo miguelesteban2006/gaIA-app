@@ -36,3 +36,18 @@ export function isTokenValid(token: string): boolean {
     return false;
   }
 }
+
+export function isUnauthorizedError(error: any): boolean {
+  // Check if error has status or response status indicating unauthorized
+  if (error?.status === 401 || error?.response?.status === 401) {
+    return true;
+  }
+  
+  // Check if error message indicates unauthorized
+  if (error?.message && typeof error.message === 'string') {
+    const message = error.message.toLowerCase();
+    return message.includes('unauthorized') || message.includes('401');
+  }
+  
+  return false;
+}

@@ -1,0 +1,41 @@
+He revisado la estructura del proyecto, he instalado las dependencias y he lanzado la comprobación de tipo (`npm run check`) para encontrar posibles problemas. Los hallazgos importantes son los siguientes:
+
+### Problemas detectados en el código
+
+1. **Errores de TypeScript**. La comprobación de tipos mostraba un error porque `authUtils` no exportaba la función `isUnauthorizedError` y porque los datos devueltos por `useQuery` se trataban como `unknown`. Implementé una función `isUnauthorizedError` en `client/src/lib/authUtils.ts` que detecta errores 401 y añadí genéricos a los `useQuery` de las páginas `chat.tsx` y `dashboard.tsx` para indicar que los resultados son arrays. Con ello, `npm run check` pasó sin errores.
+2. **Ruta inexistente para subir audio.** El componente `AudioRecorder` envía las grabaciones a `/api/upload‑audio`, pero en el backend no existe ninguna ruta con ese nombre. Para que la funcionalidad de grabación funcione hay que crear un endpoint que acepte el `FormData` y guarde/analice el audio, o bien integrar un servicio externo de almacenamiento (S3, Cloudinary) y ajustar el código cliente.
+3. **Dependencias y scripts de Replit.** El `index.html` incluye un script (`replit-dev-banner.js`) que sólo tiene sentido en desarrollo dentro de Replit. Además, en `vite.config.ts` se usan los plugins `@replit/vite-plugin-runtime-error-modal` y `@replit/vite-plugin-cartographer`; conviene eliminarlos cuando se despliegue fuera de Replit.
+4. **Variables de entorno.** El archivo `server/db.ts` lanza un error si `DATABASE_URL` no está definido. Para producción es obligatorio configurar `DATABASE_URL` (cadena de conexión a PostgreSQL), `JWT_SECRET` y opcionalmente `PORT` y `NODE_ENV`.
+5. **CORS dinámico.** En `server/index.ts` se permite cualquier origen en desarrollo, pero en producción conviene definir los dominios permitidos dentro del array `allowedOrigins`.
+
+### Sugerencias de despliegue sin depender de Replit
+
+El proyecto actual genera un directorio `dist` al ejecutar `npm run build`; en él se incluyen los archivos estáticos del frontend (`dist/public`) y el bundle del servidor (`dist/index.js`). Basta con ejecutar `npm run start` para servir tanto la API como los archivos del cliente, por lo que se puede desplegar en cualquier proveedor de Node compatible. A continuación se describe un método utilizando Railway (backend) y otra opción para el frontend con Netlify:
+
+#### 1. Desplegar el servidor y la base de datos en Railway
+
+Railway es un PaaS que ofrece servicios gratuitos para Node.js y bases de datos PostgreSQL. Los pasos recomendados por la documentación oficial son:
+
+1. **Instalar la CLI e iniciar un proyecto.** Instala la CLI de Railway y autentícate (`railway login`). Luego, en el directorio del proyecto ejecuta `railway init` para crear un proyecto nuevo y seguir las indicaciones.
+2. **Añadir un servicio de PostgreSQL.** Ejecuta `railway add -d postgres` para añadir una base de datos PostgreSQL al proyecto.
+3. **Crear un servicio de aplicación y configurar variables de entorno.** Ejecuta `railway add`, elige “Empty Service” y llámalo, por ejemplo, `app-service`. En la sección de variables introduce `DATABASE_URL=${{Postgres.DATABASE_URL}}` para que el servicio use automáticamente la URL de la base de datos creada. Añade también `JWT_SECRET` y establece `NODE_ENV` a `production`.
+4. **Desplegar la aplicación.** Ejecuta `railway up`, que comprime y sube los archivos, inicia la construcción y despliega la API. Una vez desplegado, ejecuta `railway domain` para obtener un dominio público, o configura un dominio propio.
+
+Durante la construcción, Railway detecta que es una aplicación Node.js y ejecutará `npm run build` seguido de `npm run start`. En producción, las peticiones al frontend serán servidas desde `dist/public` y las peticiones al API se gestionarán por Express. Al tratarse de una PWA, el `service worker` permitirá que la app instalada en el móvil funcione offline para datos en caché; sin embargo, para iniciar sesión o sincronizar datos será necesaria conexión al servidor.
+
+#### 2. Desplegar el frontend como sitio estático (opcional)
+
+Si prefieres separar el frontend del backend, puedes servir la API en Railway y desplegar la parte estática en Netlify o Vercel:
+
+1. Ejecuta `npm run build` y copia el contenido de `dist/public` a un repositorio independiente o dentro de la misma raíz.
+2. **Netlify.** Instala la CLI (`npm install netlify-cli -g`) y desde la carpeta del frontend ejecuta `netlify init` para crear un nuevo sitio. Netlify detectará que se trata de una app Vite; configura el comando de build como `npm run build` y el directorio de publicación como `dist/public`. A continuación vincula el repositorio y Netlify desplegará el sitio estático.
+3. **Vercel.** Alternativamente, puedes usar `vercel` CLI para desplegar los archivos estáticos o conectar tu repositorio desde el panel de Vercel. Vercel también ofrece una base de datos serverless (Neon) y servicios de funciones, pero para tu caso es más sencillo mantener la API en Railway.
+
+#### 3. Ajustes finales
+
+* **Eliminar scripts y plugins de Replit.** Borra la línea `<script src="https://replit.com/public/js/replit-dev-banner.js"></script>` de `client/index.html` y elimina las dependencias de Replit en `vite.config.ts` para evitar errores en producción.
+* **Configurar CORS.** Actualiza `allowedOrigins` en `server/index.ts` con tu dominio de Railway y, si usas frontend separado, con el dominio de Netlify/Vercel.
+* **Base de datos externa.** Railway te provee de una base de datos integrada. También puedes usar servicios externos como Neon o Supabase; en ese caso cambia `DATABASE_URL` por la cadena de conexión correspondiente.
+* **Funcionalidad de audio.** Si planeas mantener la grabación de audio, crea una ruta `/api/upload-audio` que reciba el `FormData` y almacene el archivo en un servicio de almacenamiento (por ejemplo, S3) o integra Cloudinary. De lo contrario, elimina la llamada para evitar errores.
+
+Con estas modificaciones y la configuración descrita, podrás desplegar GaIA sin depender de los servidores de Replit y utilizarla en el móvil como aplicación PWA instalada, sin necesidad de tener un ordenador encendido.

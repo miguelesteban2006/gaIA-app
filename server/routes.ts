@@ -310,6 +310,47 @@ export function registerRoutes(app: Express) {
     }
   });
 
+  // Audio upload endpoint for interactions
+  app.post("/api/upload-audio", authenticateToken, async (req: AuthRequest, res: Response) => {
+    try {
+      // Extract form data from request body
+      const { transcription, sentimentScore, sentimentLabel, duration, wordCount } = req.body;
+      
+      if (!transcription) {
+        return res.status(400).json({ message: "Transcription is required" });
+      }
+
+      // For now, we'll store the interaction without the actual audio file
+      // In production, you would upload the audio to cloud storage (S3, Cloudinary, etc.)
+      const interactionData = {
+        elderlyUserId: req.body.elderlyUserId || "demo-elderly-user", // Default for demo
+        interactionType: "voice_recording" as const,
+        content: transcription,
+        sentimentScore: parseFloat(sentimentScore) || 0,
+        sentimentLabel: sentimentLabel || "neutral",
+        duration: parseInt(duration) || 0,
+        metadata: {
+          wordCount: parseInt(wordCount) || 0,
+          audioProcessed: true,
+          uploadTimestamp: new Date().toISOString()
+        }
+      };
+
+      const interaction = await storage.createInteraction(interactionData);
+      
+      res.status(201).json({ 
+        message: "Audio processed successfully",
+        interactionId: interaction.id,
+        interaction 
+      });
+    } catch (error) {
+      console.error("Audio upload error:", error);
+      res.status(500).json({ 
+        message: error instanceof Error ? error.message : "Error processing audio"
+      });
+    }
+  });
+
   // Note: Static file serving is handled by Vercel's CDN in production
   // Local file uploads should use cloud storage (S3, Cloudinary, etc.) for Vercel deployment
 }
