@@ -8,9 +8,9 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ 
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: false // Replit PostgreSQL doesn't require SSL
+  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
 });
 
 export const db = drizzle(pool, { schema });
