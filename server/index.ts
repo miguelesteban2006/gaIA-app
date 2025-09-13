@@ -54,30 +54,16 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
   res.status(status).json({ message: err.message || "Internal Server Error" });
 });
 
-// 5) Setup server for multiple environments
+// 5) Start API server only (no static file serving)
 async function startServer() {
   const PORT = parseInt(process.env.PORT || "5000", 10);
   const HOST = process.env.HOST || "0.0.0.0"; // Allow external connections
   
-  // Check if we have built static files
-  const fs = await import("fs");
-  const path = await import("path");
-  const distPath = path.resolve(import.meta.dirname, "public");
-  
-  if (fs.existsSync(distPath) && fs.existsSync(path.resolve(distPath, "index.html"))) {
-    // Use static file serving for built assets
-    log("Using static file serving (production mode)");
-    serveStatic(app);
-  } else {
-    // Use Vite dev server for development
-    log("Using Vite dev server (development mode)");
-    await setupVite(app, server);
-  }
-  
   server.listen(PORT, HOST, () => {
-    log(`Server running on ${HOST}:${PORT}`);
+    log(`API Server running on ${HOST}:${PORT}`);
     log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     log(`Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);
+    log(`Mode: API-only (frontend served independently)`);
   });
 }
 

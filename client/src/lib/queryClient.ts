@@ -1,6 +1,7 @@
 // client/src/lib/queryClient.ts
 
 import { QueryClient } from "@tanstack/react-query";
+import { getApiBaseUrl } from "./apiConfig";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -16,8 +17,8 @@ export async function apiRequest(
 ): Promise<Response> {
   const token = localStorage.getItem("eldercompanion_token");
   
-  // Build the complete URL for mobile compatibility and deployment
-  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  // Build the complete URL using centralized API configuration
+  const baseUrl = getApiBaseUrl();
   const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : url;
   
   // Detector de conectividad mejorado

@@ -1,7 +1,13 @@
 // Configuration for API endpoints - handles development and production URLs
 
 export function getApiBaseUrl(): string {
-  // En producción, usar la URL de deployment de Replit
+  // Prioridad 1: Variable de entorno VITE_API_URL (para separación frontend/backend)
+  const viteApiUrl = import.meta.env.VITE_API_URL;
+  if (viteApiUrl) {
+    return viteApiUrl;
+  }
+  
+  // Prioridad 2: Detección automática basada en el contexto
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const protocol = window.location.protocol;
@@ -12,9 +18,9 @@ export function getApiBaseUrl(): string {
       return `${protocol}//${hostname}`;
     }
     
-    // Si estamos en localhost (desarrollo)
+    // Si estamos en localhost (desarrollo) - usar puerto fijo 5000 para API
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return `${protocol}//${hostname}:${port || '5000'}`;
+      return `${protocol}//${hostname}:5000`;
     }
     
     // Para otros casos, usar la URL actual
