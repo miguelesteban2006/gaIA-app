@@ -32,7 +32,7 @@ export default defineConfig(async ({ mode }) => {
     root: path.resolve(import.meta.dirname, "client"),
     build: {
       // Si tu server sirve ../dist/public, cambia esto por "dist/public"
-      outDir: path.resolve(import.meta.dirname, "server/public"),
+      outDir: path.resolve(import.meta.dirname, "client/dist"),
       emptyOutDir: true,
     },
     server: {
