@@ -1,12 +1,13 @@
+Si ves barra, revisa /.well-known/assetlinks.json (200, package_name y SHA-256 correctos).
+
 [
   {
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.tuempresa.gaia",
+      "package_name": "com.gaiaapp.twa",
       "sha256_cert_fingerprints": [
-        "YOUR_DEBUG_KEY_SHA256_FINGERPRINT_HERE",
-        "YOUR_PLAY_SIGNING_KEY_SHA256_FINGERPRINT_HERE"
+        "42:C4:C3:04:1A:52:05:75:84:DB:A9:7F:3A:AD:23:48:E5:BB:01:98:3F:29:1E:7C:50:D1:B7:C6:C6:B6:3A:F0"
       ]
     }
   }
