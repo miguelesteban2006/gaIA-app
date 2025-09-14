@@ -1,59 +1,23 @@
-// Configuration for API endpoints - handles development and production URLs
-
-export function getApiBaseUrl(): string {
-  // Prioridad 1: Variable de entorno VITE_API_URL (para separación frontend/backend)
-  const viteApiUrl = import.meta.env.VITE_API_URL;
-  if (viteApiUrl) {
-    return viteApiUrl;
-  }
-  
-  // Prioridad 2: Detección automática basada en el contexto
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    const port = window.location.port;
-    
-    // Si estamos en un deployment de Replit (.replit.app)
-    if (hostname.includes('.replit.app') || hostname.includes('.repl.co')) {
-      return `${protocol}//${hostname}`;
-    }
-    
-    // Si estamos en localhost (desarrollo) - usar puerto fijo 5000 para API
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return `${protocol}//${hostname}:5000`;
-    }
-    
-    // Para otros casos, usar la URL actual
-    return `${protocol}//${hostname}${port ? `:${port}` : ''}`;
-  }
-  
-  // Fallback para servidor
-  return process.env.API_BASE_URL || 'http://localhost:5000';
-}
-
-export function getFullApiUrl(endpoint: string): string {
-  const baseUrl = getApiBaseUrl();
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  return `${baseUrl}${cleanEndpoint}`;
-}
-
-// Verificar si estamos en modo offline
-export function isOfflineMode(): boolean {
-  return typeof navigator !== 'undefined' && !navigator.onLine;
-}
-
-// Configuración para requests con timeout
-export const API_CONFIG = {
-  timeout: 10000, // 10 segundos
-  retries: 2,
-  retryDelay: 1000 // 1 segundo
-};
-
 // client/src/lib/apiConfig.ts
-const base = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
 
+// 1) BASE de la API: primero VITE_API_URL (Pages), si no, mismo origen
+export const API_BASE_URL =
+  (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '') || window.location.origin;
+
+// 2) Construye URLs absolutas hacia la API
 export const apiUrl = (path: string) =>
-  new URL(path.startsWith('/') ? path : `/${path}`, base || window.location.origin).toString();
+  new URL(path.startsWith('/') ? path : `/${path}`, API_BASE_URL).toString();
 
-// Ejemplo de uso:
-// fetch(apiUrl('/api/register'), { method: 'POST', headers: {...}, body: ... })
+// 3) Helper para fetch con cookies (sesión) y Content-Type automático
+export async function apiFetch(path: string, init: RequestInit = {}) {
+  const headers = new Headers(init.headers || {});
+  // Si envías body como JSON (string) añade Content-Type si no existe
+  if (!headers.has('Content-Type') && typeof (init as any).body === 'string') {
+    headers.set('Content-Type', 'application/json');
+  }
+  return fetch(apiUrl(path), {
+    credentials: 'include', // imprescindible para la cookie 'token'
+    ...init,
+    headers
+  });
+}

@@ -1,56 +1,47 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { useAuth } from "@/hooks/useAuth";
-import { NetworkStatus } from "@/components/NetworkStatus";
-import NotFound from "@/pages/not-found";
-import Landing from "@/pages/Landing";
-import Home from "@/pages/Home";
-import ElderlyUserProfile from "@/pages/ElderlyUserProfile";
-import { Bot } from "lucide-react";
+// client/src/App.tsx
+import React from 'react';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { apiFetch } from './lib/apiConfig';
 
-function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+// Páginas
+import Landing from './pages/Landing';
+import Home from './pages/Home';
+import ElderlyUserProfile from './pages/ElderlyUserProfile';
+import NotFound from './pages/not-found';
 
-  // Si está cargando, mostrar loading
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
-        <div className="text-center">
-          <Bot className="h-12 w-12 text-blue-600 animate-pulse mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-300">Cargando GaIA...</p>
-        </div>
-      </div>
-    );
-  }
+// Ruta protegida usando /api/me
+function ProtectedRoute() {
+  const { data, isLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      const res = await apiFetch('/api/me');
+      if (!res.ok) throw new Error('NO_SESSION');
+      return res.json();
+    },
+    retry: false
+  });
 
-  return (
-    <Switch>
-      {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/elderly-users/:id" component={ElderlyUserProfile} />
-        </>
-      )}
-      <Route component={NotFound} />
-    </Switch>
-  );
+  if (isLoading) return <div style={{ padding: 24 }}>Cargando…</div>;
+  if (!data?.ok) return <Navigate to="/" replace />;
+
+  return <Outlet />;
 }
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
-          <NetworkStatus />
-          <Router />
-          <Toaster />
-        </div>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <Routes>
+      {/* Pública */}
+      <Route path="/" element={<Landing />} />
+
+      {/* Privadas */}
+      <Route element={<ProtectedRoute />}>
+        <Route path="/home" element={<Home />} />
+        <Route path="/elderly" element={<ElderlyUserProfile />} />
+      </Route>
+
+      {/* 404 */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
