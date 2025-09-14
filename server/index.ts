@@ -1,139 +1,87 @@
 // server/index.ts
-import express, { type Request, type Response, type NextFunction } from "express";
-import { createServer } from "http";
-import dotenv from "dotenv";
-import { registerRoutes } from "./routes";
-
-// Si en tu proyecto tienes un helper de logs, úsalo; si no, usa console.log
-const log = (...args: any[]) => console.log("[server]", ...args);
-
-dotenv.config();
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import http from 'http';
 
 const app = express();
-const server = createServer(app);
+const server = http.createServer(app);
 
-/* ==========================
-   Ajustes base
-========================== */
-app.disable("x-powered-by");
-app.set("trust proxy", true);
+// IMPORTANTES EN RENDER (detrás de proxy) si usas cookies
+app.set('trust proxy', 1);
 
-// Body parsers
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: false, limit: "10mb" }));
+// Dominios permitidos: producción (Pages) + local dev
+const allowedOrigins = [
+  'https://gaia-app.pages.dev',
+  'http://localhost:5173'
+];
 
-/* ==========================
-   CORS (sin redirecciones en preflight)
-   - Define ALLOWED_ORIGINS en tu entorno de producción:
-     ALLOWED_ORIGINS=https://gaia-app.pages.dev,https://tu-dominio.com
-   - En desarrollo, si no defines ALLOWED_ORIGINS, se permite todo.
-========================== */
-const parseAllowed = (v?: string) =>
-  (v || "")
-    .split(",")
-    .map(s => s.trim())
-    .filter(Boolean);
-
-const ALLOWED_ORIGINS = parseAllowed(process.env.ALLOWED_ORIGINS);
-
-function setCorsHeaders(req: Request, res: Response) {
-  const origin = req.headers.origin;
-
-  if (process.env.NODE_ENV === "production") {
-    // En producción, solo los orígenes explícitos
-    if (origin && ALLOWED_ORIGINS.includes(origin)) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader("Vary", "Origin");
-      res.setHeader("Access-Control-Allow-Credentials", "true");
-    }
-  } else {
-    // En desarrollo, permite cualquier origen (útil para pruebas locales)
-    if (origin) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader("Vary", "Origin");
-      res.setHeader("Access-Control-Allow-Credentials", "true");
-    } else {
-      res.setHeader("Access-Control-Allow-Origin", "*");
-    }
+// Permite también las URLs de preview de Pages: <hash>.gaia-app.pages.dev
+function isAllowedOrigin(origin?: string) {
+  if (!origin) return true; // permite curl/Postman/healthz
+  try {
+    const h = new URL(origin).hostname;
+    return (
+      h === 'gaia-app.pages.dev' ||
+      h.endsWith('.gaia-app.pages.dev') ||
+      h === 'localhost'
+    );
+  } catch {
+    return false;
   }
-
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,PATCH,DELETE,OPTIONS"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, Accept, Origin, X-Requested-With"
-  );
-  // Cachea la preflight 1h
-  res.setHeader("Access-Control-Max-Age", "3600");
 }
 
-app.use((req: Request, res: Response, next: NextFunction) => {
-  setCorsHeaders(req, res);
-  if (req.method === "OPTIONS") {
-    // Responder aquí evita cualquier redirect del stack
-    return res.status(204).end();
-  }
-  next();
-});
+const corsConfig: cors.CorsOptions = {
+  origin(origin, cb) {
+    if (isAllowedOrigin(origin)) return cb(null, true);
+    return cb(new Error('Origin not allowed by CORS'));
+  },
+  credentials: true, // deja true si usas cookies para sesión; si usas sólo JWT en header, podrías poner false
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
-/* ==========================
-   Rutas de salud
-========================== */
-app.get("/healthz", (_req, res) => {
-  res.status(200).json({
-    status: "ok",
-    env: process.env.NODE_ENV || "development",
-    time: new Date().toISOString(),
+// CORS debe ir ANTES de tus rutas
+app.use(cors(corsConfig));
+// Responder explícitamente a preflight en cualquier ruta
+app.options('*', cors(corsConfig));
+
+app.use(express.json({ limit: '1mb' }));
+app.use(cookieParser());
+
+// ----- Salud para pruebas/monitoreo -----
+app.get('/healthz', (_req, res) => res.status(200).send('ok'));
+
+// ----- TUS RUTAS API AQUÍ -----
+// Ejemplo de patrón para login con cookie (ajusta a tu lógica):
+/*
+app.post('/api/login', async (req, res) => {
+  const { email, password } = req.body;
+  // ... valida credenciales, crea token ...
+  const jwt = 'TOKEN_AQUI';
+
+  // Cookie cross-site: obligatorio SameSite=None + Secure
+  res.cookie('token', jwt, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 1000 * 60 * 60 * 24 * 7
   });
+
+  return res.status(200).json({ ok: true });
 });
+*/
 
-app.get("/", (_req, res) => {
-  res.status(200).json({ ok: true, message: "GaIA API" });
-});
-
-/* ==========================
-   Rutas de la API
-========================== */
-registerRoutes(app);
-
-/* ==========================
-   Manejadores de errores
-========================== */
-// 404 para lo que no exista
-app.use((_req, res) => {
-  res.status(404).json({ message: "Not Found" });
-});
-
-// Errores generales
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  // eslint-disable-next-line no-console
-  console.error(err);
-  const status = err?.statusCode || err?.status || 500;
-  res.status(status).json({
-    message: err?.message || "Internal Server Error",
-  });
-});
-
-/* ==========================
-   Arranque del servidor
-========================== */
-async function startServer() {
-  const PORT = parseInt(process.env.PORT || "5000", 10);
-  const HOST = process.env.HOST || "0.0.0.0";
-
-  // Log de conexión DB solo informativo (no se conecta aquí)
-  log(`Environment: ${process.env.NODE_ENV || "development"}`);
-  log(`Allowed origins: ${ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS.join(", ") : "(any in dev)"}`);
-
-  server.listen(PORT, HOST, () => {
-    log(`API Server listening on http://${HOST}:${PORT}`);
-  });
+// Si en desarrollo quieres Vite middleware, hazlo SOLO fuera de producción.
+// (Con Pages no necesitas Vite en el backend.)
+if (process.env.NODE_ENV !== 'production') {
+  console.log('[dev] Backend corriendo en modo desarrollo');
+  // Aquí podrías montar Vite dev server si lo usabas, pero no es necesario.
 }
 
-startServer().catch((e) => {
-  // eslint-disable-next-line no-console
-  console.error("Fatal server error:", e);
-  process.exit(1);
+const PORT = parseInt(process.env.PORT ?? '5000', 10);
+const HOST = process.env.HOST ?? '0.0.0.0';
+server.listen(PORT, HOST, () => {
+  console.log(`Server running on http://${HOST}:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
