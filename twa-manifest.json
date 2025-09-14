@@ -20,8 +20,8 @@
     "path": "/home/miguel-esteban/proyectos/keys/gaia-upload.jks",
     "alias": "gaia-upload"
   },
-  "appVersionName": "1.1",
-  "appVersionCode": 4,
+  "appVersionName": "2.0",
+  "appVersionCode": 5,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://gaia-app.pages.dev/manifest.json",
