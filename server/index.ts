@@ -1,33 +1,40 @@
-// server/index.js
-const express = require('express');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const http = require('http');
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+// server/index.ts  (ESM + TypeScript)
 
+// --- Imports ESM ---
+import express, { Request, Response, NextFunction } from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import { createServer } from 'http';
+import { Pool } from 'pg';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+// --- App / Server ---
 const app = express();
-const server = http.createServer(app);
+const server = createServer(app);
 
-// ----- Config básica -----
-app.set('trust proxy', 1);                       // necesario en Render para cookies
+// Render está detrás de proxy (necesario para cookies Secure)
+app.set('trust proxy', 1);
+
+// --- Middlewares base ---
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
-// ----- CORS (Pages + previews + localhost) -----
+// --- CORS (Pages + previews + localhost) ---
 const allowedOrigins = [
   'https://gaia-app.pages.dev',
   'http://localhost:5173'
 ];
-function isAllowedOrigin(origin) {
-  if (!origin) return true; // curl/Postman
+function isAllowedOrigin(origin?: string) {
+  if (!origin) return true; // curl/Postman/healthz
   try {
     const h = new URL(origin).hostname;
     return h === 'gaia-app.pages.dev' || h.endsWith('.gaia-app.pages.dev') || h === 'localhost';
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
-const corsConfig = {
+const corsConfig: cors.CorsOptions = {
   origin(origin, cb) {
     if (isAllowedOrigin(origin)) return cb(null, true);
     return cb(new Error('Origin not allowed by CORS'));
@@ -37,19 +44,19 @@ const corsConfig = {
   allowedHeaders: ['Content-Type','Authorization']
 };
 app.use(cors(corsConfig));
-app.options('*', cors(corsConfig));              // preflight global
+app.options('*', cors(corsConfig)); // preflight global
 
-// ----- Health -----
+// --- Salud ---
 app.get('/healthz', (_req, res) => res.status(200).send('ok'));
 
-// ----- DB (Neon / Postgres) -----
+// --- DB (Neon/Postgres) ---
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   console.error('ERROR: DATABASE_URL no definido');
   process.exit(1);
 }
 const pool = new Pool({
-  connectionString,              // asegúrate de que lleva ?sslmode=require
+  connectionString,                // recomienda: ?sslmode=require en la URL
   ssl: { rejectUnauthorized: false }
 });
 pool.on('error', (e) => console.error('Pool error:', e));
@@ -74,33 +81,33 @@ async function dbSanity() {
   try {
     await dbSanity();
     await ensureSchema();
-  } catch (e) {
+  } catch (e: any) {
     console.error('[DB] Startup error:', e?.message || e);
     process.exit(1);
   }
 })();
 
-// ----- Helpers -----
+// --- Helpers / Auth ---
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
-const signToken = (payload) => jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+const signToken = (payload: object) => jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
-const normalizeEmail = (email) => (email || '').trim().toLowerCase();
-// acepta name / fullName / username / nombre
-const pickName = (b) => (b?.name ?? b?.fullName ?? b?.username ?? b?.nombre ?? '');
-// acepta password / pass / contrasena / contraseña
-const pickPassword = (b) => (b?.password ?? b?.pass ?? b?.contrasena ?? b?.contraseña ?? '');
+const normalizeEmail = (email: string) => (email || '').trim().toLowerCase();
+// name / fullName / username / nombre
+const pickName = (b: any) => (b?.name ?? b?.fullName ?? b?.username ?? b?.nombre ?? '') as string;
+// password / pass / contrasena / contraseña
+const pickPassword = (b: any) => (b?.password ?? b?.pass ?? b?.contrasena ?? b?.contraseña ?? '') as string;
 
-// ----- Debug DB (quítalo en prod si quieres) -----
+// --- Debug DB (puedes quitarlo en prod) ---
 app.get('/debug/db', async (_req, res) => {
   try {
     const r = await pool.query('select now() as now, current_user as "user"');
     res.json({ ok: true, db: r.rows[0] });
-  } catch (e) {
-    res.status(500).json({ ok: false, error: e?.message || String(e), code: e?.code });
+  } catch (e: any) {
+    res.status(500).json({ ok: false, error: e?.message || String(e), code: (e as any)?.code });
   }
 });
 
-// ----- AUTH: Register -----
+// --- AUTH: Register ---
 app.post('/api/register', async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email || '');
@@ -113,7 +120,7 @@ app.post('/api/register', async (req, res) => {
     }
 
     const exists = await pool.query('SELECT 1 FROM users WHERE email = $1 LIMIT 1', [email]);
-    if (exists.rowCount > 0) {
+    if (exists.rowCount && exists.rowCount > 0) {
       return res.status(409).json({ ok: false, error: 'USER_EXISTS' });
     }
 
@@ -129,21 +136,22 @@ app.post('/api/register', async (req, res) => {
     const token = signToken({ sub: String(user.id), email: user.email });
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true,               // HTTPS obligatorio
-      sameSite: 'none',           // cross-site (Pages → Render)
+      secure: true,       // HTTPS
+      sameSite: 'none',   // cross-site (Pages → Render)
       maxAge: 1000 * 60 * 60 * 24 * 7
     });
 
     return res.status(201).json({ ok: true, user });
-  } catch (e) {
-    if (e?.code === '23505') return res.status(409).json({ ok: false, error: 'USER_EXISTS' }); // unique_violation
-    if (e?.code === '42P01') return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
+  } catch (e: any) {
+    const code = (e as any)?.code;
+    if (code === '23505') return res.status(409).json({ ok: false, error: 'USER_EXISTS' }); // unique_violation
+    if (code === '42P01') return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
     console.error('POST /api/register error', e);
     return res.status(500).json({ ok: false, error: 'INTERNAL_ERROR' });
   }
 });
 
-// ----- AUTH: Login -----
+// --- AUTH: Login ---
 app.post('/api/login', async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email || '');
@@ -176,20 +184,21 @@ app.post('/api/login', async (req, res) => {
     });
 
     return res.status(200).json({ ok: true, user: { id: user.id, name: user.name, email: user.email } });
-  } catch (e) {
-    if (e?.code === '42P01') return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
+  } catch (e: any) {
+    const code = (e as any)?.code;
+    if (code === '42P01') return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
     console.error('POST /api/login error', e);
     return res.status(500).json({ ok: false, error: 'INTERNAL_ERROR' });
   }
 });
 
-// ----- AUTH: middleware + /api/me -----
-function auth(req, res, next) {
+// --- AUTH middleware + /api/me ---
+function auth(req: Request & { user?: any }, res: Response, next: NextFunction) {
   const bearer = req.headers.authorization?.split(' ')[1];
-  const token = req.cookies?.token || bearer;
+  const token = (req as any).cookies?.token || bearer;
   if (!token) return res.status(401).json({ ok: false, error: 'NO_TOKEN' });
   try {
-    const payload = jwt.verify(token, JWT_SECRET); // { sub, email }
+    const payload = jwt.verify(token, JWT_SECRET) as { sub: string; email: string };
     req.user = payload;
     next();
   } catch {
@@ -197,16 +206,16 @@ function auth(req, res, next) {
   }
 }
 
-app.get('/api/me', auth, async (req, res) => {
+app.get('/api/me', auth, async (req: Request & { user?: any }, res: Response) => {
   const userId = req.user.sub;
   const db = await pool.query('SELECT id, name, email FROM users WHERE id = $1', [userId]);
-  if (db.rowCount === 0) return res.status(404).json({ ok: false, error: 'USER_NOT_FOUND' });
+  if (!db.rowCount) return res.status(404).json({ ok: false, error: 'USER_NOT_FOUND' });
   res.json({ ok: true, user: db.rows[0] });
 });
 
-// ----- Arranque -----
-const PORT = parseInt(process.env.PORT || '5000', 10);
-const HOST = process.env.HOST || '0.0.0.0';
+// --- Arranque ---
+const PORT = parseInt(process.env.PORT ?? '5000', 10);
+const HOST = process.env.HOST ?? '0.0.0.0';
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
