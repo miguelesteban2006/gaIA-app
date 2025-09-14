@@ -1,74 +1,60 @@
 // server/index.ts
 import express from 'express';
-import http from 'http';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import http from 'http';
 import { Pool } from 'pg';
-import * as bcrypt from 'bcryptjs';
-import * as jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const app = express();
 const server = http.createServer(app);
 
-/* =========================
-   Config básica
-   ========================= */
-app.set('trust proxy', 1); // necesario en Render si usas cookies detrás de proxy
+// ----- CONFIG GENERAL -----
+app.set('trust proxy', 1); // Render va detrás de proxy
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
-/* =========================
-   CORS (Pages + previews + localhost)
-   ========================= */
+// ----- CORS (Pages + previews + localhost) -----
 const allowedOrigins = [
   'https://gaia-app.pages.dev',
   'http://localhost:5173'
 ];
-
 function isAllowedOrigin(origin?: string) {
-  if (!origin) return true; // permite curl/Postman/healthz
+  if (!origin) return true;
   try {
     const h = new URL(origin).hostname;
-    return (
-      h === 'gaia-app.pages.dev' ||
-      h.endsWith('.gaia-app.pages.dev') ||
-      h === 'localhost'
-    );
-  } catch {
-    return false;
-  }
+    return h === 'gaia-app.pages.dev' || h.endsWith('.gaia-app.pages.dev') || h === 'localhost';
+  } catch { return false; }
 }
-
 const corsConfig: cors.CorsOptions = {
   origin(origin, cb) {
     if (isAllowedOrigin(origin)) return cb(null, true);
     return cb(new Error('Origin not allowed by CORS'));
   },
-  credentials: true, // déjalo en true si usas cookies de sesión
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  credentials: true,
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
 };
-
 app.use(cors(corsConfig));
 app.options('*', cors(corsConfig));
 
-/* =========================
-   Healthcheck
-   ========================= */
+// ----- HEALTH -----
 app.get('/healthz', (_req, res) => res.status(200).send('ok'));
 
-/* =========================
-   Postgres (Neon)
-   ========================= */
+// ----- DB (Neon/Postgres) -----
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
-  console.error('DATABASE_URL no definido');
+  console.error('ERROR: DATABASE_URL no definido');
   process.exit(1);
 }
-
+// Recomendado: que tu DATABASE_URL lleve `?sslmode=require`
 const pool = new Pool({
   connectionString,
-  ssl: { rejectUnauthorized: false } // TLS para Neon/Render
+  ssl: { rejectUnauthorized: false }
+});
+pool.on('error', (e) => {
+  console.error('Pool error:', e);
 });
 
 async function ensureSchema() {
@@ -81,54 +67,57 @@ async function ensureSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
   `);
+  console.log('[DB] Schema OK');
 }
-ensureSchema().catch((e) => {
-  console.error('Error ensureSchema:', e);
-  process.exit(1);
-});
 
-/* =========================
-   Helpers
-   ========================= */
+async function dbSanity() {
+  const r = await pool.query('select now() as now, current_user as "user"');
+  console.log('[DB] Connected:', r.rows[0]);
+}
+
+// Arranca comprobando DB
+(async () => {
+  try {
+    await dbSanity();
+    await ensureSchema();
+  } catch (e: any) {
+    console.error('[DB] Startup error:', e?.message || e);
+    process.exit(1);
+  }
+})();
+
+// ----- HELPERS -----
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
 
 function normalizeEmail(email: string) {
   return (email || '').trim().toLowerCase();
 }
-
-// acepta name / fullName / username / nombre
+// Alias para nombre
 function pickName(body: any) {
   return body?.name ?? body?.fullName ?? body?.username ?? body?.nombre ?? '';
 }
-
-// acepta password / pass / contrasena / contraseña
+// Alias para password
 function pickPassword(body: any) {
   return body?.password ?? body?.pass ?? body?.contrasena ?? body?.contraseña ?? '';
 }
 
-/* =========================
-   (Opcional) Log seguro de payloads AUTH (quitar en prod si no lo quieres)
-   ========================= */
-// app.use((req, _res, next) => {
-//   if (req.path === '/api/register' || req.path === '/api/login') {
-//     const safe: any = { ...req.body };
-//     if (safe.password) safe.password = '***';
-//     if (safe.pass) safe.pass = '***';
-//     console.log(`[DEBUG] ${req.method} ${req.path}`, safe);
-//   }
-//   next();
-// });
+// ----- DEBUG (para ti; quita cuando termines) -----
+app.get('/debug/db', async (_req, res) => {
+  try {
+    const r = await pool.query('select now() as now, current_user as "user"');
+    res.json({ ok: true, db: r.rows[0] });
+  } catch (e: any) {
+    res.status(500).json({ ok: false, error: e?.message || String(e), code: (e as any)?.code });
+  }
+});
 
-/* =========================
-   AUTH: Register
-   ========================= */
+// ----- AUTH: REGISTER -----
 app.post('/api/register', async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email || '');
     const password = String(pickPassword(req.body) || '');
-    // name opcional: si no viene, usa lo anterior a la @
     const rawName = String(pickName(req.body) || '').trim();
-    const name = rawName || (email.includes('@') ? email.split('@')[0] : '');
+    const name = rawName || (email.includes('@') ? email.split('@')[0] : 'Usuario');
 
     if (!email || !password) {
       return res.status(400).json({ ok: false, error: 'FIELDS_REQUIRED' });
@@ -144,29 +133,33 @@ app.post('/api/register', async (req, res) => {
       `INSERT INTO users (name, email, password_hash)
        VALUES ($1, $2, $3)
        RETURNING id, name, email`,
-      [name || 'Usuario', email, hash]
+      [name, email, hash]
     );
     const user = inserted.rows[0];
 
-    // Cookie JWT (cross-site requiere SameSite=None + Secure)
     const token = jwt.sign({ sub: String(user.id), email: user.email }, JWT_SECRET, { expiresIn: '7d' });
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true,     // obligatorio en HTTPS
-      sameSite: 'none', // obligatorio para Pages → Render
+      secure: true,
+      sameSite: 'none',
       maxAge: 1000 * 60 * 60 * 24 * 7
     });
 
     return res.status(201).json({ ok: true, user });
   } catch (e: any) {
-    console.error('POST /api/register error', e?.message || e);
+    const code = (e as any)?.code;
+    if (code === '23505') { // unique_violation
+      return res.status(409).json({ ok: false, error: 'USER_EXISTS' });
+    }
+    if (code === '42P01') { // undefined_table
+      return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
+    }
+    console.error('POST /api/register error', e);
     return res.status(500).json({ ok: false, error: 'INTERNAL_ERROR' });
   }
 });
 
-/* =========================
-   AUTH: Login
-   ========================= */
+// ----- AUTH: LOGIN -----
 app.post('/api/login', async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email || '');
@@ -200,17 +193,18 @@ app.post('/api/login', async (req, res) => {
 
     return res.status(200).json({ ok: true, user: { id: user.id, name: user.name, email: user.email } });
   } catch (e: any) {
-    console.error('POST /api/login error', e?.message || e);
+    const code = (e as any)?.code;
+    if (code === '42P01') {
+      return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
+    }
+    console.error('POST /api/login error', e);
     return res.status(500).json({ ok: false, error: 'INTERNAL_ERROR' });
   }
 });
 
-/* =========================
-   Arranque
-   ========================= */
+// ----- ARRANQUE -----
 const PORT = parseInt(process.env.PORT ?? '5000', 10);
 const HOST = process.env.HOST ?? '0.0.0.0';
-
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
