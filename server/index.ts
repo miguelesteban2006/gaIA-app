@@ -7,28 +7,22 @@ import http from 'http';
 const app = express();
 const server = http.createServer(app);
 
-// IMPORTANTES EN RENDER (detrás de proxy) si usas cookies
+// Render está detrás de proxy (cookies cross-site)
 app.set('trust proxy', 1);
 
-// Dominios permitidos: producción (Pages) + local dev
+// ===== CORS =====
 const allowedOrigins = [
   'https://gaia-app.pages.dev',
   'http://localhost:5173'
 ];
 
-// Permite también las URLs de preview de Pages: <hash>.gaia-app.pages.dev
+// Acepta previews de Pages: <hash>.gaia-app.pages.dev
 function isAllowedOrigin(origin?: string) {
-  if (!origin) return true; // permite curl/Postman/healthz
+  if (!origin) return true;
   try {
     const h = new URL(origin).hostname;
-    return (
-      h === 'gaia-app.pages.dev' ||
-      h.endsWith('.gaia-app.pages.dev') ||
-      h === 'localhost'
-    );
-  } catch {
-    return false;
-  }
+    return h === 'gaia-app.pages.dev' || h.endsWith('.gaia-app.pages.dev') || h === 'localhost';
+  } catch { return false; }
 }
 
 const corsConfig: cors.CorsOptions = {
@@ -36,51 +30,54 @@ const corsConfig: cors.CorsOptions = {
     if (isAllowedOrigin(origin)) return cb(null, true);
     return cb(new Error('Origin not allowed by CORS'));
   },
-  credentials: true, // deja true si usas cookies para sesión; si usas sólo JWT en header, podrías poner false
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  credentials: true,
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
 };
 
-// CORS debe ir ANTES de tus rutas
 app.use(cors(corsConfig));
-// Responder explícitamente a preflight en cualquier ruta
 app.options('*', cors(corsConfig));
 
+// ===== Middlewares =====
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
-// ----- Salud para pruebas/monitoreo -----
+// ===== Healthcheck =====
 app.get('/healthz', (_req, res) => res.status(200).send('ok'));
 
-// ----- TUS RUTAS API AQUÍ -----
-// Ejemplo de patrón para login con cookie (ajusta a tu lógica):
-/*
+// ===== ENDPOINTS que necesita tu frontend =====
+// Nota: son mínimos para quitar el 404. Sustituye con tu lógica real (BD, hash, JWT, etc.).
+
+// POST /api/login
 app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  // ... valida credenciales, crea token ...
-  const jwt = 'TOKEN_AQUI';
+  const { email, password } = req.body || {};
+  if (!email || !password) {
+    return res.status(400).json({ ok: false, error: 'EMAIL_PASSWORD_REQUIRED' });
+  }
 
-  // Cookie cross-site: obligatorio SameSite=None + Secure
-  res.cookie('token', jwt, {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'none',
-    maxAge: 1000 * 60 * 60 * 24 * 7
-  });
+  // TODO: valida credenciales en tu BD. Ejemplo si usas cookie de sesión:
+  // const jwt = crearToken({ sub: user.id });
+  // res.cookie('token', jwt, { httpOnly: true, secure: true, sameSite: 'none', maxAge: 7*24*60*60*1000 });
 
-  return res.status(200).json({ ok: true });
+  // Respuesta mínima para que el cliente continúe
+  return res.status(200).json({ ok: true /*, token: jwt si usas JWT en JSON */ });
 });
-*/
 
-// Si en desarrollo quieres Vite middleware, hazlo SOLO fuera de producción.
-// (Con Pages no necesitas Vite en el backend.)
-if (process.env.NODE_ENV !== 'production') {
-  console.log('[dev] Backend corriendo en modo desarrollo');
-  // Aquí podrías montar Vite dev server si lo usabas, pero no es necesario.
-}
+// POST /api/register
+app.post('/api/register', async (req, res) => {
+  const { name, email, password } = req.body || {};
+  if (!name || !email || !password) {
+    return res.status(400).json({ ok: false, error: 'FIELDS_REQUIRED' });
+  }
 
+  // TODO: crea el usuario en tu BD (valida duplicados, hashea password, etc.)
+  return res.status(201).json({ ok: true });
+});
+
+// ===== Arranque =====
 const PORT = parseInt(process.env.PORT ?? '5000', 10);
 const HOST = process.env.HOST ?? '0.0.0.0';
+
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
