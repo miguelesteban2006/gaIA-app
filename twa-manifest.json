@@ -1,29 +1,31 @@
 {
-  "packageId": "com.gaiaapp.twa",
+  "packageId": "com.gaiaapp.twa",                      // <<< CAMBIA si usaste otro Application ID (¡no lo inventes nuevo!)
   "host": "gaia-app.pages.dev",
-  "name": "ElderCompanion: GaIA",
+  "name": "GaIA",
   "launcherName": "GaIA",
   "display": "standalone",
   "themeColor": "#A855F7",
-  "backgroundColor": "#A855F7",
+  "navigationColor": "#A855F7",
+  "navigationColorDark": "#A855F7",
+  "backgroundColor": "#FFFFFF",
+  "enableNotifications": false,
   "startUrl": "/?standalone=true",
   "iconUrl": "https://gaia-app.pages.dev/icons/gaia-512.png",
   "maskableIconUrl": "https://gaia-app.pages.dev/icons/gaia-512.png",
-  "monochromeIconUrl": "",         // (opcional) URL a icono blanco 512x512
-  "splashScreenFadeOutDuration": 300,
-  "signingKey": {
-    "path": "/home/miguel-esteban/proyectos/keys/gaia-upload.jks",
-    "alias": "gaia-upload"
+  "monochromeIconUrl": "",
+  "splashScreen": {
+    "backgroundColor": "#A855F7"
   },
-  "appVersionName": "4",
-  "appVersionCode": 4,
-  "webManifestUrl": "https://gaia-app.pages.dev/manifest.json",
-  "fullScopeUrl": "https://gaia-app.pages.dev/",
-  "minSdkVersion": 21,
-  "orientation": "portrait",
-  "additionalTrustedOrigins": [
-    "https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev"
-  ],
+  "signingKey": {
+    "path": "/home/miguel-esteban/proyectos/keys/gaia-upload.jks",   // <<< CAMBIA si tu .jks está en otra ruta
+    "alias": "gaia-upload"                                           // <<< CAMBIA si elegiste otro alias
+  },
+  "appVersionName": "1.0.2",
+  "appVersionCode": 2,
+  "additionalTrustedOrigins": [],
+  "shortcuts": [],
+  "shareTarget": {},
   "generatorApp": "bubblewrap-cli",
-  "features": {}
+  "webManifestUrl": "https://gaia-app.pages.dev/manifest.json",
+  "fallbackType": "customtabs"
 }
