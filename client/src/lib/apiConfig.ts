@@ -1,30 +1,34 @@
 // Configuration for API endpoints - handles development and production URLs
 
 export function getApiBaseUrl(): string {
-  // Prioridad 1: Variable de entorno VITE_API_URL (para separación frontend/backend)
-  const viteApiUrl = import.meta.env.VITE_API_URL;
-  if (viteApiUrl) {
-    return viteApiUrl;
+  // 1) Variable de entorno (recomendado en producción)
+  const viteApiUrl = (import.meta as any)?.env?.VITE_API_URL as string | undefined;
+  if (viteApiUrl && typeof viteApiUrl === 'string') {
+    return viteApiUrl.replace(/\/+$/, '');
   }
-  
-  // Prioridad 2: Detección automática basada en el contexto
+
+  // 2) Detección automática (local / preview)
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
     const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
     const port = window.location.port;
-    
-...
+    const origin = `${protocol}//${hostname}${port ? `:${port}` : ''}`;
+    return origin.replace(/\/+$/, '');
+  }
+
+  // 3) Fallback para SSR/build tools
+  return 'http://localhost:5173';
+}
+
 export const API_CONFIG = {
   timeout: 10000, // 10 segundos
   retries: 2,
   retryDelay: 1000 // 1 segundo
 };
 
-// client/src/lib/apiConfig.ts
-const base = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+// Base calculada una vez
+const BASE = getApiBaseUrl();
 
+// Construye URL absoluta para la API
 export const apiUrl = (path: string) =>
-  new URL(path.startsWith('/') ? path : `/${path}`, base || window.location.origin).toString();
-
-// Ejemplo de uso:
-// fetch(apiUrl('/api/register'), { method: 'POST', headers: {...}, body: ... })
+  new URL(path.startsWith('/') ? path : `/${path}`, BASE || window.location.origin).toString();
