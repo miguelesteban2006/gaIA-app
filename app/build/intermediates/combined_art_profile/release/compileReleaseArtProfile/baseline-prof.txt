@@ -4,7 +4,7 @@ Landroidx/lifecycle/i;
 Landroidx/lifecycle/j;
 HSPLandroidx/activity/ComponentActivity$4;->h(Landroidx/lifecycle/k;Landroidx/lifecycle/f$a;)V
 Landroidx/activity/b;
-Landroidx/core/app/b;
+Landroidx/core/app/a;
 Landroidx/lifecycle/k;
 Landroidx/activity/OnBackPressedDispatcher$LifecycleOnBackPressedCancellable;
 PLandroidx/activity/OnBackPressedDispatcher$LifecycleOnBackPressedCancellable;->d()V

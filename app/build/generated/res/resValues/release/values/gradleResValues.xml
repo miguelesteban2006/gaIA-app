@@ -4,44 +4,44 @@
     <!-- Automatically generated file. DO NOT MODIFY -->
 
     <!-- Value from default config. -->
-    <bool name="enableNotification">true</bool>
+    <bool name="enableNotification">false</bool>
     <!-- Value from default config. -->
     <bool name="enableSiteSettingsShortcut">true</bool>
     <!-- Value from default config. -->
-    <color name="backgroundColor">#A855F7</color>
+    <color name="backgroundColor">#FFFFFF</color>
     <!-- Value from default config. -->
     <color name="colorPrimary">#A855F7</color>
     <!-- Value from default config. -->
     <color name="colorPrimaryDark">#000000</color>
     <!-- Value from default config. -->
-    <color name="navigationColor">#000000</color>
+    <color name="navigationColor">#A855F7</color>
     <!-- Value from default config. -->
-    <color name="navigationColorDark">#000000</color>
+    <color name="navigationColorDark">#A855F7</color>
     <!-- Value from default config. -->
     <color name="navigationDividerColor">#000000</color>
     <!-- Value from default config. -->
     <color name="navigationDividerColorDark">#000000</color>
     <!-- Value from default config. -->
-    <integer name="splashScreenFadeOutDuration">300</integer>
+    <integer name="splashScreenFadeOutDuration">0</integer>
     <!-- Value from default config. -->
-    <string name="appName" translatable="false">ElderCompanion: GaIA</string>
+    <string name="appName" translatable="false">GaIA</string>
     <!-- Value from default config. -->
     <string name="fallbackType" translatable="false">customtabs</string>
     <!-- Value from default config. -->
-    <string name="fullScopeUrl" translatable="false">https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/</string>
-    <!-- Value from default config. -->
     <string name="generatorApp" translatable="false">bubblewrap-cli</string>
     <!-- Value from default config. -->
-    <string name="hostName" translatable="false">e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev</string>
+    <string name="hostName" translatable="false">gaia-app.pages.dev</string>
     <!-- Value from default config. -->
-    <string name="launchUrl" translatable="false">https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/?standalone=true</string>
+    <string name="launchUrl" translatable="false">https://gaia-app.pages.dev/?standalone=true</string>
     <!-- Value from default config. -->
     <string name="launcherName" translatable="false">GaIA</string>
     <!-- Value from default config. -->
-    <string name="orientation" translatable="false">portrait</string>
+    <string name="orientation" translatable="false">default</string>
     <!-- Value from default config. -->
     <string name="providerAuthority" translatable="false">com.gaiaapp.twa.fileprovider</string>
     <!-- Value from default config. -->
-    <string name="webManifestUrl" translatable="false">https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/manifest.json</string>
+    <string name="shareTarget" translatable="false">{}</string>
+    <!-- Value from default config. -->
+    <string name="webManifestUrl" translatable="false">https://gaia-app.pages.dev/manifest.json</string>
 
 </resources>

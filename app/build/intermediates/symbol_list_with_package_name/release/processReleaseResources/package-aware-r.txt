@@ -639,7 +639,6 @@ drawable ic_call_answer_video
 drawable ic_call_answer_video_low
 drawable ic_call_decline
 drawable ic_call_decline_low
-drawable ic_notification_icon
 drawable ic_site_settings
 drawable notification_action_background
 drawable notification_bg
@@ -946,7 +945,6 @@ string fallbackType
 string fallback_menu_item_copy_link
 string fallback_menu_item_open_in_browser
 string fallback_menu_item_share_link
-string fullScopeUrl
 string generatorApp
 string hostName
 string launchUrl
@@ -957,6 +955,7 @@ string no_provider_toast
 string orientation
 string providerAuthority
 string search_menu_title
+string shareTarget
 string status_bar_notification_info_overflow
 string update_chrome_toast
 string webManifestUrl

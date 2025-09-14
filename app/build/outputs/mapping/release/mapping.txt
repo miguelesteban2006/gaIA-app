@@ -3,8 +3,8 @@
 # min_api: 21
 # common_typos_disable
 # {"id":"com.android.tools.r8.mapping","version":"2.2"}
-# pg_map_id: 20fe4b1
-# pg_map_hash: SHA-256 20fe4b1267e8fdb381e2226d9e427ea62a320ec013ab2f220b6405b743a01bb7
+# pg_map_id: a1a5b11
+# pg_map_hash: SHA-256 a1a5b11e6b5f3006c390f1209ee5e872713556f7cb7563feb920725be549a7f7
 android.support.customtabs.ICustomTabsCallback -> a.a:
 # {"id":"sourceFile","fileName":"ICustomTabsCallback.java"}
     java.lang.String DESCRIPTOR -> a
@@ -11657,31 +11657,7 @@ androidx.core.R$styleable -> s.c:
     int FontFamilyFont_fontWeight -> y
     int FontFamilyFont_ttcIndex -> z
     7:70:void <clinit>():0:0 -> <clinit>
-androidx.core.app.ActivityCompat -> androidx.core.app.a:
-# {"id":"sourceFile","fileName":"ActivityCompat.java"}
-    1:7:void requestPermissions(android.app.Activity,java.lang.String[],int):512:512 -> g
-    8:10:void requestPermissions(android.app.Activity,java.lang.String[],int):513:513 -> g
-    11:18:void requestPermissions(android.app.Activity,java.lang.String[],int):514:514 -> g
-    19:24:void requestPermissions(android.app.Activity,java.lang.String[],int):519:519 -> g
-    25:34:void requestPermissions(android.app.Activity,java.lang.String[],int):520:520 -> g
-    35:44:void requestPermissions(android.app.Activity,java.lang.String[],int):521:521 -> g
-    45:56:void requestPermissions(android.app.Activity,java.lang.String[],int):515:515 -> g
-    57:76:void requestPermissions(android.app.Activity,java.lang.String[],int):516:516 -> g
-    77:82:void requestPermissions(android.app.Activity,java.lang.String[],int):526:526 -> g
-    83:90:void requestPermissions(android.app.Activity,java.lang.String[],int):528:528 -> g
-    91:95:void requestPermissions(android.app.Activity,java.lang.String[],int):530:530 -> g
-    96:98:void requestPermissions(android.app.Activity,java.lang.String[],int):533:533 -> g
-    99:110:void requestPermissions(android.app.Activity,java.lang.String[],int):534:534 -> g
-    111:118:void requestPermissions(android.app.Activity,java.lang.String[],int):535:535 -> g
-    119:124:void requestPermissions(android.app.Activity,java.lang.String[],int):540:540 -> g
-    125:128:void requestPermissions(android.app.Activity,java.lang.String[],int):545:545 -> g
-androidx.core.app.ActivityCompat$Api23Impl -> androidx.core.app.a$a:
-# {"id":"sourceFile","fileName":"ActivityCompat.java"}
-    1:2:void onSharedElementsReady(java.lang.Object):914:914 -> a
-    3:6:void onSharedElementsReady(java.lang.Object):915:915 -> a
-    1:4:void requestPermissions(android.app.Activity,java.lang.String[],int):904:904 -> b
-    1:5:boolean shouldShowRequestPermissionRationale(android.app.Activity,java.lang.String):909:909 -> c
-androidx.core.app.ComponentActivity -> androidx.core.app.b:
+androidx.core.app.ComponentActivity -> androidx.core.app.a:
 # {"id":"sourceFile","fileName":"ComponentActivity.kt"}
 androidx.core.app.CoreComponentFactory -> androidx.core.app.CoreComponentFactory:
 # {"id":"sourceFile","fileName":"CoreComponentFactory.java"}
@@ -11692,7 +11668,7 @@ androidx.core.app.CoreComponentFactory -> androidx.core.app.CoreComponentFactory
     1:11:android.content.ContentProvider instantiateProvider(java.lang.ClassLoader,java.lang.String):66:66 -> instantiateProvider
     1:11:android.content.BroadcastReceiver instantiateReceiver(java.lang.ClassLoader,java.lang.String,android.content.Intent):59:59 -> instantiateReceiver
     1:11:android.app.Service instantiateService(java.lang.ClassLoader,java.lang.String,android.content.Intent):74:74 -> instantiateService
-androidx.core.app.NotificationManagerCompat -> androidx.core.app.c:
+androidx.core.app.NotificationManagerCompat -> androidx.core.app.b:
 # {"id":"sourceFile","fileName":"NotificationManagerCompat.java"}
     android.content.Context mContext -> a
     android.app.NotificationManager mNotificationManager -> b
@@ -11717,17 +11693,15 @@ androidx.core.app.NotificationManagerCompat -> androidx.core.app.c:
     74:79:boolean areNotificationsEnabled():380:380 -> a
     80:90:boolean areNotificationsEnabled():381:381 -> a
     91:117:boolean areNotificationsEnabled():382:382 -> a
-    1:6:void createNotificationChannel(android.app.NotificationChannel):425:425 -> b
-    7:12:void createNotificationChannel(android.app.NotificationChannel):426:426 -> b
-    1:6:androidx.core.app.NotificationManagerCompat from(android.content.Context):217:217 -> c
-      # {"id":"com.android.tools.r8.residualsignature","signature":"(Landroid/content/Context;)Landroidx/core/app/c;"}
-    1:6:android.app.NotificationChannel getNotificationChannel(java.lang.String):608:608 -> d
-    7:15:android.app.NotificationChannel getNotificationChannel(java.lang.String):609:609 -> d
-androidx.core.app.NotificationManagerCompat$Api24Impl -> androidx.core.app.c$a:
+    1:6:androidx.core.app.NotificationManagerCompat from(android.content.Context):217:217 -> b
+      # {"id":"com.android.tools.r8.residualsignature","signature":"(Landroid/content/Context;)Landroidx/core/app/b;"}
+    1:6:android.app.NotificationChannel getNotificationChannel(java.lang.String):608:608 -> c
+    7:15:android.app.NotificationChannel getNotificationChannel(java.lang.String):609:609 -> c
+androidx.core.app.NotificationManagerCompat$Api24Impl -> androidx.core.app.b$a:
 # {"id":"sourceFile","fileName":"NotificationManagerCompat.java"}
     1:5:boolean areNotificationsEnabled(android.app.NotificationManager):1277:1277 -> a
     1:5:int getImportance(android.app.NotificationManager):1282:1282 -> b
-androidx.core.app.NotificationManagerCompat$Api26Impl -> androidx.core.app.c$b:
+androidx.core.app.NotificationManagerCompat$Api26Impl -> androidx.core.app.b$b:
 # {"id":"sourceFile","fileName":"NotificationManagerCompat.java"}
     1:4:void createNotificationChannel(android.app.NotificationManager,android.app.NotificationChannel):1300:1300 -> a
     1:4:void createNotificationChannelGroup(android.app.NotificationManager,android.app.NotificationChannelGroup):1324:1324 -> b
@@ -22707,9 +22681,9 @@ com.gaiaapp.twa.LauncherActivity -> com.gaiaapp.twa.LauncherActivity:
     1:4:void <init>():25:25 -> <init>
     1:5:android.net.Uri getLaunchingUrl():48:48 -> i
     1:3:void onCreate(android.os.Bundle):33:33 -> onCreate
-    4:11:void onCreate(android.os.Bundle):38:38 -> onCreate
-    12:16:void onCreate(android.os.Bundle):39:39 -> onCreate
-    17:20:void onCreate(android.os.Bundle):41:41 -> onCreate
+    4:10:void onCreate(android.os.Bundle):38:38 -> onCreate
+    11:14:void onCreate(android.os.Bundle):39:39 -> onCreate
+    15:18:void onCreate(android.os.Bundle):41:41 -> onCreate
 com.google.androidbrowserhelper.R$drawable -> I.a:
     int ic_site_settings -> a
 com.google.androidbrowserhelper.R$string -> I.b:
@@ -23257,37 +23231,12 @@ com.google.androidbrowserhelper.trusted.NotificationDelegationExtraCommandHandle
     73:79:android.os.Bundle handleExtraCommand(android.content.Context,java.lang.String,android.os.Bundle,androidx.browser.trusted.TrustedWebActivityCallbackRemote):50:50 -> a
     80:84:android.os.Bundle handleExtraCommand(android.content.Context,java.lang.String,android.os.Bundle,androidx.browser.trusted.TrustedWebActivityCallbackRemote):53:53 -> a
     85:88:android.os.Bundle handleExtraCommand(android.content.Context,java.lang.String,android.os.Bundle,androidx.browser.trusted.TrustedWebActivityCallbackRemote):54:54 -> a
-com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity -> com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity:
+com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity -> J.w:
 # {"id":"sourceFile","fileName":"NotificationPermissionRequestActivity.java"}
-    java.lang.String mChannelName -> a
-    android.os.Messenger mMessenger -> b
-    1:4:void <init>():35:35 -> <init>
     1:11:android.app.PendingIntent createPermissionRequestPendingIntent(android.content.Context,java.lang.String):57:57 -> a
     12:16:android.app.PendingIntent createPermissionRequestPendingIntent(android.content.Context,java.lang.String):58:58 -> a
     17:27:android.app.PendingIntent createPermissionRequestPendingIntent(android.content.Context,java.lang.String):60:60 -> a
     28:36:android.app.PendingIntent createPermissionRequestPendingIntent(android.content.Context,java.lang.String):61:61 -> a
-    1:7:void sendPermissionMessage(android.os.Messenger,boolean):111:111 -> b
-    8:12:void sendPermissionMessage(android.os.Messenger,boolean):113:113 -> b
-    13:16:void sendPermissionMessage(android.os.Messenger,boolean):114:114 -> b
-    17:19:void sendPermissionMessage(android.os.Messenger,boolean):115:115 -> b
-    20:24:void sendPermissionMessage(android.os.Messenger,boolean):118:118 -> b
-    25:28:void sendPermissionMessage(android.os.Messenger,boolean):120:120 -> b
-    1:3:void onCreate(android.os.Bundle):66:66 -> onCreate
-    4:15:void onCreate(android.os.Bundle):68:68 -> onCreate
-    16:29:void onCreate(android.os.Bundle):69:69 -> onCreate
-    30:36:void onCreate(android.os.Bundle):70:70 -> onCreate
-    37:54:void onCreate(android.os.Bundle):78:78 -> onCreate
-    55:59:void onCreate(android.os.Bundle):79:79 -> onCreate
-    60:70:void onCreate(android.os.Bundle):82:82 -> onCreate
-    71:77:void onCreate(android.os.Bundle):71:71 -> onCreate
-    78:81:void onCreate(android.os.Bundle):72:72 -> onCreate
-    3:5:void onRequestPermissionsResult(int,java.lang.String[],int[]):88:88 -> onRequestPermissionsResult
-    6:18:void onRequestPermissionsResult(int,java.lang.String[],int[]):89:89 -> onRequestPermissionsResult
-    19:21:void onRequestPermissionsResult(int,java.lang.String[],int[]):91:91 -> onRequestPermissionsResult
-    22:28:void onRequestPermissionsResult(int,java.lang.String[],int[]):92:92 -> onRequestPermissionsResult
-    29:34:void onRequestPermissionsResult(int,java.lang.String[],int[]):100:100 -> onRequestPermissionsResult
-    35:39:void onRequestPermissionsResult(int,java.lang.String[],int[]):103:103 -> onRequestPermissionsResult
-    40:43:void onRequestPermissionsResult(int,java.lang.String[],int[]):104:104 -> onRequestPermissionsResult
 com.google.androidbrowserhelper.trusted.NotificationUtils -> J.x:
 # {"id":"sourceFile","fileName":"NotificationUtils.java"}
     1:12:boolean areNotificationsEnabled(android.content.Context,java.lang.String):34:34 -> a
@@ -23295,19 +23244,10 @@ com.google.androidbrowserhelper.trusted.NotificationUtils -> J.x:
     21:34:boolean areNotificationsEnabled(android.content.Context,java.lang.String):39:39 -> a
     35:43:boolean areNotificationsEnabled(android.content.Context,java.lang.String):40:40 -> a
     1:32:java.lang.String channelNameToId(java.lang.String):59:59 -> b
-    1:7:void createNotificationChannel(android.content.Context,java.lang.String):47:47 -> c
-    8:19:void createNotificationChannel(android.content.Context,java.lang.String):49:49 -> c
-    20:27:void createNotificationChannel(android.content.Context,java.lang.String):51:51 -> c
-com.google.androidbrowserhelper.trusted.NotificationUtils$$ExternalSyntheticApiModelOutline0 -> J.w:
-# {"id":"sourceFile","fileName":"R8$$SyntheticClass"}
-# {"id":"com.android.tools.r8.synthesized"}
-    1:1:void J.NotificationUtils$$ExternalSyntheticApiModelOutline0.m():0:0 -> a
-      # {"id":"com.android.tools.r8.synthesized"}
 com.google.androidbrowserhelper.trusted.PrefUtils -> J.y:
 # {"id":"sourceFile","fileName":"PrefUtils.java"}
     1:12:android.content.SharedPreferences getAppSharedPreferences(android.content.Context):34:34 -> a
     1:12:boolean hasRequestedNotificationPermission(android.content.Context):39:39 -> b
-    1:19:void setHasRequestedNotificationPermission(android.content.Context):43:43 -> c
 com.google.androidbrowserhelper.trusted.QualityEnforcer -> J.B:
 # {"id":"sourceFile","fileName":"QualityEnforcer.java"}
     com.google.androidbrowserhelper.trusted.QualityEnforcer$Delegate mDelegate -> a

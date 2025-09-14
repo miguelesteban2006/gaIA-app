@@ -23,8 +23,6 @@
     package="com.gaiaapp.twa">
 
     
-        <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    
 
     
 
@@ -120,6 +118,10 @@
                 android:value="@string/fallbackType" />
 
             
+                <meta-data
+                    android:name="android.support.customtabs.trusted.METADATA_SHARE_TARGET"
+                    android:resource="@string/shareTarget"/>
+            
 
             
 
@@ -128,6 +130,14 @@
 
             
 
+            
+                <intent-filter>
+                    
+                        <action android:name="android.intent.action.SEND" />
+                    
+                    <category android:name="android.intent.category.DEFAULT" />
+                    
+                </intent-filter>
             
 
             <intent-filter>
@@ -171,10 +181,6 @@
             android:exported="@bool/enableNotification">
 
             
-                <meta-data
-                    android:name="android.support.customtabs.trusted.SMALL_ICON"
-                    android:resource="@drawable/ic_notification_icon" />
-            
 
             <intent-filter>
                 <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE"/>
@@ -182,8 +188,6 @@
             </intent-filter>
         </service>
 
-        
-            <activity android:name="com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity" />
         
 
         

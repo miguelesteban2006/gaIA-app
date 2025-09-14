@@ -1,31 +1,43 @@
 {
-  "packageId": "com.gaiaapp.twa",                      // <<< CAMBIA si usaste otro Application ID (¡no lo inventes nuevo!)
+  "packageId": "com.gaiaapp.twa",
   "host": "gaia-app.pages.dev",
   "name": "GaIA",
   "launcherName": "GaIA",
   "display": "standalone",
   "themeColor": "#A855F7",
+  "themeColorDark": "#000000",
   "navigationColor": "#A855F7",
   "navigationColorDark": "#A855F7",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
   "backgroundColor": "#FFFFFF",
   "enableNotifications": false,
   "startUrl": "/?standalone=true",
   "iconUrl": "https://gaia-app.pages.dev/icons/gaia-512.png",
   "maskableIconUrl": "https://gaia-app.pages.dev/icons/gaia-512.png",
   "monochromeIconUrl": "",
-  "splashScreen": {
-    "backgroundColor": "#A855F7"
-  },
   "signingKey": {
-    "path": "/home/miguel-esteban/proyectos/keys/gaia-upload.jks",   // <<< CAMBIA si tu .jks está en otra ruta
-    "alias": "gaia-upload"                                           // <<< CAMBIA si elegiste otro alias
+    "path": "/home/miguel-esteban/proyectos/keys/gaia-upload.jks",
+    "alias": "gaia-upload"
   },
-  "appVersionName": "1.0.2",
-  "appVersionCode": 2,
-  "additionalTrustedOrigins": [],
+  "appVersionName": "1.1",
+  "appVersionCode": 4,
   "shortcuts": [],
-  "shareTarget": {},
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://gaia-app.pages.dev/manifest.json",
-  "fallbackType": "customtabs"
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "minSdkVersion": 21,
+  "shareTarget": {},
+  "orientation": "default",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "appVersion": "1.1"
 }

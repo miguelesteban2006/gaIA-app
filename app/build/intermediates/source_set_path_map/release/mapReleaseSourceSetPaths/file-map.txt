@@ -19,10 +19,10 @@ com.gaiaapp.twa.app-core-1.13.0-17 /home/miguel-esteban/.gradle/caches/8.11.1/tr
 com.gaiaapp.twa.app-profileinstaller-1.3.1-18 /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/res
 com.gaiaapp.twa.app-browser-1.9.0-alpha04-19 /home/miguel-esteban/.gradle/caches/8.11.1/transforms/be57bd43967b699c12a0f6b8bd2f21c6/transformed/browser-1.9.0-alpha04/res
 com.gaiaapp.twa.app-appcompat-resources-1.7.0-20 /home/miguel-esteban/.gradle/caches/8.11.1/transforms/d6f2e3c3aeb152384c7f6efcc9d99697/transformed/appcompat-resources-1.7.0/res
-com.gaiaapp.twa.app-pngs-21 /home/miguel-esteban/Descargas/gaIA-app/app/build/generated/res/pngs/release
-com.gaiaapp.twa.app-resValues-22 /home/miguel-esteban/Descargas/gaIA-app/app/build/generated/res/resValues/release
-com.gaiaapp.twa.app-packageReleaseResources-23 /home/miguel-esteban/Descargas/gaIA-app/app/build/intermediates/incremental/release/packageReleaseResources/merged.dir
-com.gaiaapp.twa.app-packageReleaseResources-24 /home/miguel-esteban/Descargas/gaIA-app/app/build/intermediates/incremental/release/packageReleaseResources/stripped.dir
-com.gaiaapp.twa.app-release-25 /home/miguel-esteban/Descargas/gaIA-app/app/build/intermediates/merged_res/release/mergeReleaseResources
-com.gaiaapp.twa.app-main-26 /home/miguel-esteban/Descargas/gaIA-app/app/src/main/res
-com.gaiaapp.twa.app-release-27 /home/miguel-esteban/Descargas/gaIA-app/app/src/release/res
+com.gaiaapp.twa.app-pngs-21 /home/miguel-esteban/gaIA-app/app/build/generated/res/pngs/release
+com.gaiaapp.twa.app-resValues-22 /home/miguel-esteban/gaIA-app/app/build/generated/res/resValues/release
+com.gaiaapp.twa.app-packageReleaseResources-23 /home/miguel-esteban/gaIA-app/app/build/intermediates/incremental/release/packageReleaseResources/merged.dir
+com.gaiaapp.twa.app-packageReleaseResources-24 /home/miguel-esteban/gaIA-app/app/build/intermediates/incremental/release/packageReleaseResources/stripped.dir
+com.gaiaapp.twa.app-release-25 /home/miguel-esteban/gaIA-app/app/build/intermediates/merged_res/release/mergeReleaseResources
+com.gaiaapp.twa.app-main-26 /home/miguel-esteban/gaIA-app/app/src/main/res
+com.gaiaapp.twa.app-release-27 /home/miguel-esteban/gaIA-app/app/src/release/res

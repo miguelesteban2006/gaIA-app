@@ -7,7 +7,7 @@
     <attr format="string" name="title"/>
     <bool name="abc_action_bar_embed_tabs">true</bool>
     <bool name="abc_config_actionMenuItemAllCaps">true</bool>
-    <bool name="enableNotification">true</bool>
+    <bool name="enableNotification">false</bool>
     <bool name="enableSiteSettingsShortcut">true</bool>
     <color name="abc_decor_view_status_guard">#ff000000</color>
     <color name="abc_decor_view_status_guard_light">#ffffffff</color>
@@ -18,7 +18,7 @@
     <color name="accent_material_light">@color/material_deep_teal_500</color>
     <color name="androidx_core_ripple_material_light">#1f000000</color>
     <color name="androidx_core_secondary_text_default_material_light">#8a000000</color>
-    <color name="backgroundColor">#A855F7</color>
+    <color name="backgroundColor">#FFFFFF</color>
     <color name="background_floating_material_dark">@color/material_grey_800</color>
     <color name="background_floating_material_light">@android:color/white</color>
     <color name="background_material_dark">@color/material_grey_850</color>
@@ -61,8 +61,8 @@
     <color name="material_grey_800">#ff424242</color>
     <color name="material_grey_850">#ff303030</color>
     <color name="material_grey_900">#ff212121</color>
-    <color name="navigationColor">#000000</color>
-    <color name="navigationColorDark">#000000</color>
+    <color name="navigationColor">#A855F7</color>
+    <color name="navigationColorDark">#A855F7</color>
     <color name="navigationDividerColor">#000000</color>
     <color name="navigationDividerColorDark">#000000</color>
     <color name="notification_action_color_filter">#ffffffff</color>
@@ -284,7 +284,7 @@
     <integer name="abc_config_activityShortDur">150</integer>
     <integer name="cancel_button_image_alpha">127</integer>
     <integer name="config_tooltipAnimTime">150</integer>
-    <integer name="splashScreenFadeOutDuration">300</integer>
+    <integer name="splashScreenFadeOutDuration">0</integer>
     <integer name="status_bar_notification_info_maxnum">999</integer>
     <string name="abc_action_bar_home_description">Navigate home</string>
     <string name="abc_action_bar_up_description">Navigate up</string>
@@ -314,14 +314,14 @@
     <string name="abc_shareactionprovider_share_with_application">Share with <ns1:g example="Mail" id="application_name">%s</ns1:g></string>
     <string name="abc_toolbar_collapse_description">Collapse</string>
     <string name="androidx_startup" translatable="false">androidx.startup</string>
-    <string name="appName" translatable="false">ElderCompanion: GaIA</string>
+    <string name="appName" translatable="false">GaIA</string>
     <string name="app_name">Android Browser Helper</string>
     <string name="assetStatements">
     [{
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
         \"target\": {
             \"namespace\": \"web\",
-            \"site\": \"https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev\"
+            \"site\": \"https://gaia-app.pages.dev\"
         }
     }]
     
@@ -338,20 +338,20 @@
     <string name="fallback_menu_item_copy_link">Copy link</string>
     <string name="fallback_menu_item_open_in_browser">Open in browser</string>
     <string name="fallback_menu_item_share_link">Share link</string>
-    <string name="fullScopeUrl" translatable="false">https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/</string>
     <string name="generatorApp" translatable="false">bubblewrap-cli</string>
-    <string name="hostName" translatable="false">e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev</string>
-    <string name="launchUrl" translatable="false">https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/?standalone=true</string>
+    <string name="hostName" translatable="false">gaia-app.pages.dev</string>
+    <string name="launchUrl" translatable="false">https://gaia-app.pages.dev/?standalone=true</string>
     <string name="launcherName" translatable="false">GaIA</string>
     <string name="manage_space_no_data_toast">This app holds no browsing data.</string>
     <string name="manage_space_not_supported_toast">This app\'s data is stored in %1$s.</string>
     <string name="no_provider_toast">Please install Chrome Stable 72 or later.</string>
-    <string name="orientation" translatable="false">portrait</string>
+    <string name="orientation" translatable="false">default</string>
     <string name="providerAuthority" translatable="false">com.gaiaapp.twa.fileprovider</string>
     <string name="search_menu_title">Search</string>
+    <string name="shareTarget" translatable="false">{}</string>
     <string name="status_bar_notification_info_overflow">999+</string>
     <string name="update_chrome_toast">Please update to Chrome Stable 72 or later.</string>
-    <string name="webManifestUrl" translatable="false">https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/manifest.json</string>
+    <string name="webManifestUrl" translatable="false">https://gaia-app.pages.dev/manifest.json</string>
     <style name="AlertDialog.AppCompat" parent="Base.AlertDialog.AppCompat"/>
     <style name="AlertDialog.AppCompat.Light" parent="Base.AlertDialog.AppCompat.Light"/>
     <style name="Animation.AppCompat.Dialog" parent="Base.Animation.AppCompat.Dialog"/>

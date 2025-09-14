@@ -1,4 +1,4 @@
-#Sat Sep 13 15:44:30 CEST 2025
-base.0=/home/miguel-esteban/Descargas/gaIA-app/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
+#Sun Sep 14 12:16:26 CEST 2025
+base.0=/home/miguel-esteban/gaIA-app/app/build/intermediates/dex/release/minifyReleaseWithR8/classes.dex
 renamed.0=classes.dex
 path.0=classes.dex

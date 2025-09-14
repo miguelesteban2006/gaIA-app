@@ -10,7 +10,6 @@ color navigationColorDark
 color navigationDividerColor
 color navigationDividerColorDark
 color shortcut_background
-drawable ic_notification_icon
 drawable shortcut_legacy_background
 drawable splash
 integer splashScreenFadeOutDuration
@@ -20,13 +19,13 @@ raw web_app_manifest
 string appName
 string assetStatements
 string fallbackType
-string fullScopeUrl
 string generatorApp
 string hostName
 string launchUrl
 string launcherName
 string orientation
 string providerAuthority
+string shareTarget
 string webManifestUrl
 xml filepaths
 xml shortcuts

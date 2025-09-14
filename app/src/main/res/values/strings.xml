@@ -28,7 +28,7 @@
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
         \"target\": {
             \"namespace\": \"web\",
-            \"site\": \"https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev\"
+            \"site\": \"https://gaia-app.pages.dev\"
         }
     }]
     

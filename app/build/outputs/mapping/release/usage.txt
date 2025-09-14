@@ -3613,38 +3613,19 @@ androidx.core.animation.AnimatorKt$doOnEnd$$inlined$addListener$default$1
 androidx.core.animation.AnimatorKt$doOnRepeat$$inlined$addListener$default$1
 androidx.core.animation.AnimatorKt$doOnStart$$inlined$addListener$default$1
 androidx.core.animation.AnimatorKt
+androidx.core.app.ActivityCompat$1
 androidx.core.app.ActivityCompat$Api21Impl
 androidx.core.app.ActivityCompat$Api22Impl
-androidx.core.app.ActivityCompat$Api23Impl:
-    private void <init>()
+androidx.core.app.ActivityCompat$Api23Impl
 androidx.core.app.ActivityCompat$Api28Impl
 androidx.core.app.ActivityCompat$Api30Impl
 androidx.core.app.ActivityCompat$Api31Impl
 androidx.core.app.ActivityCompat$Api32Impl
-androidx.core.app.ActivityCompat$PermissionCompatDelegate:
-    public abstract boolean onActivityResult(android.app.Activity,int,int,android.content.Intent)
+androidx.core.app.ActivityCompat$OnRequestPermissionsResultCallback
+androidx.core.app.ActivityCompat$PermissionCompatDelegate
+androidx.core.app.ActivityCompat$RequestPermissionsRequestCodeValidator
 androidx.core.app.ActivityCompat$SharedElementCallback21Impl
-androidx.core.app.ActivityCompat:
-    protected void <init>()
-    public static void finishAffinity(android.app.Activity)
-    public static void finishAfterTransition(android.app.Activity)
-    public static androidx.core.app.ActivityCompat$PermissionCompatDelegate getPermissionCompatDelegate()
-    public static android.net.Uri getReferrer(android.app.Activity)
-    public static boolean invalidateOptionsMenu(android.app.Activity)
-    public static boolean isLaunchedFromBubble(android.app.Activity)
-    private static synthetic void lambda$recreate$0(android.app.Activity)
-    public static void postponeEnterTransition(android.app.Activity)
-    public static void recreate(android.app.Activity)
-    public static androidx.core.view.DragAndDropPermissionsCompat requestDragAndDropPermissions(android.app.Activity,android.view.DragEvent)
-    public static android.view.View requireViewById(android.app.Activity,int)
-    public static void setEnterSharedElementCallback(android.app.Activity,androidx.core.app.SharedElementCallback)
-    public static void setExitSharedElementCallback(android.app.Activity,androidx.core.app.SharedElementCallback)
-    public static void setLocusContext(android.app.Activity,androidx.core.content.LocusIdCompat,android.os.Bundle)
-    public static void setPermissionCompatDelegate(androidx.core.app.ActivityCompat$PermissionCompatDelegate)
-    public static boolean shouldShowRequestPermissionRationale(android.app.Activity,java.lang.String)
-    public static void startActivityForResult(android.app.Activity,android.content.Intent,int,android.os.Bundle)
-    public static void startIntentSenderForResult(android.app.Activity,android.content.IntentSender,int,android.content.Intent,int,int,int,android.os.Bundle)
-    public static void startPostponedEnterTransition(android.app.Activity)
+androidx.core.app.ActivityCompat
 androidx.core.app.ActivityManagerCompat
 androidx.core.app.ActivityOptionsCompat$ActivityOptionsCompatImpl
 androidx.core.app.ActivityOptionsCompat$Api21Impl
@@ -3848,6 +3829,7 @@ androidx.core.app.NotificationManagerCompat:
     public void cancel(int)
     public void cancel(java.lang.String,int)
     public void cancelAll()
+    public void createNotificationChannel(android.app.NotificationChannel)
     public void createNotificationChannel(androidx.core.app.NotificationChannelCompat)
     public void createNotificationChannelGroup(android.app.NotificationChannelGroup)
     public void createNotificationChannelGroup(androidx.core.app.NotificationChannelGroupCompat)
@@ -7755,13 +7737,21 @@ com.google.androidbrowserhelper.trusted.NotificationPermissionRequestActivity:
     private static final java.lang.String PERMISSION_POST_NOTIFICATIONS
     private static final java.lang.String TAG
     private static final int VERSION_T
+    private java.lang.String mChannelName
+    private android.os.Messenger mMessenger
+    public void <init>()
+    protected void onCreate(android.os.Bundle)
+    public void onRequestPermissionsResult(int,java.lang.String[],int[])
+    private static void sendPermissionMessage(android.os.Messenger,boolean)
 com.google.androidbrowserhelper.trusted.NotificationUtils:
     private void <init>()
+    public static void createNotificationChannel(android.content.Context,java.lang.String)
 com.google.androidbrowserhelper.trusted.PermissionStatus
 com.google.androidbrowserhelper.trusted.PrefUtils:
     private static final java.lang.String KEY_HAS_REQUESTED_NOTIFICATION_PERMISSION
     private static final java.lang.String SHARED_PREFERENCES_NAME
     private void <init>()
+    public static void setHasRequestedNotificationPermission(android.content.Context)
 com.google.androidbrowserhelper.trusted.QualityEnforcer:
     static final java.lang.String CRASH
     static final java.lang.String KEY_CRASH_REASON
@@ -15590,14 +15580,6 @@ androidx.concurrent.futures.AbstractResolvableFuture$SetFuture
 androidx.concurrent.futures.AbstractResolvableFuture:
     static java.lang.Object checkNotNull(java.lang.Object)
     static java.lang.Object getFutureValue(com.google.common.util.concurrent.ListenableFuture)
-androidx.core.app.ActivityCompat$$InternalSyntheticThrowCCEIfNotNull$8$87f5f3ee39a507a821c0cac2c41ae97972cc2fd75bcf9c839fb098eb6d4675fb$0
-androidx.core.app.ActivityCompat$1$$InternalSyntheticThrowCCEIfNotNull$8$a4650200ea34729841d2251593f2c5754b8e758eca88770c25593bc1ba2598de$0
-androidx.core.app.ActivityCompat$1
-androidx.core.app.ActivityCompat$OnRequestPermissionsResultCallback
-androidx.core.app.ActivityCompat$PermissionCompatDelegate
-androidx.core.app.ActivityCompat$RequestPermissionsRequestCodeValidator
-androidx.core.app.ActivityCompat:
-    private static androidx.core.app.ActivityCompat$PermissionCompatDelegate sDelegate
 androidx.core.app.CoreComponentFactory$$InternalSyntheticThrowCCEIfNotNull$8$28d6d52be828bd520f37653069cdb0fd59ddc413967dd43deec606fddf5e864e$0
 androidx.core.app.CoreComponentFactory$CompatWrapped
 androidx.core.graphics.TypefaceCompat:

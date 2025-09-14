@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <bool name="enableNotification">true</bool>
+    <bool name="enableNotification">false</bool>
     <bool name="enableSiteSettingsShortcut">true</bool>
-    <color name="backgroundColor">#A855F7</color>
+    <color name="backgroundColor">#FFFFFF</color>
     <color name="colorPrimary">#A855F7</color>
     <color name="colorPrimaryDark">#000000</color>
-    <color name="navigationColor">#000000</color>
-    <color name="navigationColorDark">#000000</color>
+    <color name="navigationColor">#A855F7</color>
+    <color name="navigationColorDark">#A855F7</color>
     <color name="navigationDividerColor">#000000</color>
     <color name="navigationDividerColorDark">#000000</color>
     <color name="shortcut_background">#F5F5F5</color>
-    <integer name="splashScreenFadeOutDuration">300</integer>
-    <string name="appName" translatable="false">ElderCompanion: GaIA</string>
+    <integer name="splashScreenFadeOutDuration">0</integer>
+    <string name="appName" translatable="false">GaIA</string>
     <string name="assetStatements">
     [{
         \"relation\": [\"delegate_permission/common.handle_all_urls\"],
         \"target\": {
             \"namespace\": \"web\",
-            \"site\": \"https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev\"
+            \"site\": \"https://gaia-app.pages.dev\"
         }
     }]
     
   </string>
     <string name="fallbackType" translatable="false">customtabs</string>
-    <string name="fullScopeUrl" translatable="false">https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/</string>
     <string name="generatorApp" translatable="false">bubblewrap-cli</string>
-    <string name="hostName" translatable="false">e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev</string>
-    <string name="launchUrl" translatable="false">https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/?standalone=true</string>
+    <string name="hostName" translatable="false">gaia-app.pages.dev</string>
+    <string name="launchUrl" translatable="false">https://gaia-app.pages.dev/?standalone=true</string>
     <string name="launcherName" translatable="false">GaIA</string>
-    <string name="orientation" translatable="false">portrait</string>
+    <string name="orientation" translatable="false">default</string>
     <string name="providerAuthority" translatable="false">com.gaiaapp.twa.fileprovider</string>
-    <string name="webManifestUrl" translatable="false">https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/manifest.json</string>
+    <string name="shareTarget" translatable="false">{}</string>
+    <string name="webManifestUrl" translatable="false">https://gaia-app.pages.dev/manifest.json</string>
 </resources>
