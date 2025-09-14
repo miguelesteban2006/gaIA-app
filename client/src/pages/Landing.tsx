@@ -1,255 +1,152 @@
-import { useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { useState } from "react";
+import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { setAuthToken, clearAuthData } from "@/lib/authUtils";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { Heart, Shield, Brain, Users, Bot, Activity } from "lucide-react";
+
+import { Heart, Activity, Users } from "lucide-react";
+
+const AFTER_LOGIN_ROUTE = "/elderly";
 
 export default function Landing() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const [isLogin, setIsLogin] = useState(true);
 
-  // Limpiar cualquier token inválido al cargar la página de login
-  useEffect(() => {
-    // Verificar si hay un token inválido y limpiarlo si es necesario
-    try {
-      const token = localStorage.getItem("gaia_token");
-      if (token && token.length < 10) {
-        clearAuthData();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const loginMutation = useMutation({
+    mutationFn: async (body: { email: string; password: string }) => {
+      // Importante: apiRequest ya debe incluir credentials:'include' internamente
+      const res = await apiRequest("POST", "/api/login", body);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = data?.error || "INVALID_CREDENTIALS";
+        throw new Error(msg);
       }
-    } catch {
-      // Ignorar errores de acceso a localStorage
-      clearAuthData();
-    }
-  }, []);
-  
-  const authMutation = useMutation({
-    mutationFn: async (data: any) => {
-      const endpoint = isLogin ? "/api/login" : "/api/register";
-      const response = await apiRequest("POST", endpoint, data);
-      return response.json();
+      return data; // { ok:true, user:{...} }
     },
-    onSuccess: (data) => {
-      setAuthToken(data.token);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+    onSuccess: () => {
       toast({
-        title: "¡Bienvenido a GaIA!",
-        description: isLogin ? "Has iniciado sesión correctamente" : "Tu cuenta ha sido creada exitosamente",
+        title: "Bienvenido",
+        description: "Has iniciado sesión correctamente.",
       });
-      // Redirigir al interior de la app tras login/registro
-      navigate('/home', { replace: true });
+      // ✅ Redirige al panel de perfiles
+      navigate(AFTER_LOGIN_ROUTE, { replace: true });
     },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message.includes("400") 
-          ? "El usuario ya existe o los datos son incorrectos" 
-          : "Error al procesar la solicitud",
-        variant: "destructive",
-      });
+    onError: (err: any) => {
+      const msg =
+        err?.message === "INVALID_CREDENTIALS"
+          ? "Credenciales inválidas"
+          : "Error al procesar la solicitud";
+      toast({ title: "No se pudo iniciar sesión", description: msg, variant: "destructive" });
     },
   });
-
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-
-  // Manejar cambios en el formulario
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload: any = {
-      email: formData.email,
-      password: formData.password,
-    };
-    if (!isLogin) {
-      payload.name = formData.name;
-    }
-    authMutation.mutate(payload);
+    loginMutation.mutate({ email, password });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
-      {/* Hero */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-100/40 to-blue-100/40 dark:from-purple-900/20 dark:to-blue-900/20" />
-        <div className="relative container mx-auto px-4 py-16 md:py-24">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-200 mb-6">
-                <Bot className="h-4 w-4" />
-                <span className="text-sm">Asistente IA para cuidado de mayores</span>
-              </div>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-                Cuida y acompaña a tus seres queridos con <span className="text-purple-600">GaIA</span>
-              </h1>
-              <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-                Monitoreo de salud, recordatorios inteligentes y comunicación segura, todo en una sola aplicación.
-              </p>
+    <div className="min-h-screen w-full bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
+      {/* Encabezado centrado con logo, como antes */}
+      <header className="container mx-auto px-4 pt-10 pb-6 text-center">
+        <div className="inline-flex items-center gap-3 mb-4">
+          <img src="/icons/gaia-512.png" alt="GaIA" className="h-10 w-10 rounded-full" />
+          <h1 className="text-3xl md:text-4xl font-bold">
+            <span className="text-purple-600">GaIA</span>
+          </h1>
+        </div>
+        <p className="max-w-3xl mx-auto text-gray-600 dark:text-gray-300">
+          Sistema inteligente de monitoreo y cuidado para adultos mayores. Conectando familias,
+          profesionales médicos y asistentes robóticos para un cuidado integral.
+        </p>
+      </header>
 
-              <div className="flex items-center gap-4">
-                <Link href="#auth">
-                  <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
-                    Empezar ahora
-                  </Button>
-                </Link>
-                <Link href="/home">
-                  <Button variant="outline" size="lg">
-                    Ver demo
-                  </Button>
-                </Link>
-              </div>
+      {/* Beneficios (3 columnas) + Card de Login como en tu diseño anterior */}
+      <section className="container mx-auto px-4 pb-12">
+        <div className="grid lg:grid-cols-2 gap-10 items-start">
+          {/* Columna izquierda: 3 beneficios */}
+          <div className="grid sm:grid-cols-3 gap-8">
+            <div className="text-center">
+              <Heart className="h-10 w-10 text-rose-500 mx-auto mb-3" />
+              <h3 className="font-semibold mb-1">Cuidado Emocional</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Análisis de sentimientos y estado de ánimo en tiempo real
+              </p>
             </div>
 
-            <div className="relative">
-              <div className="absolute -inset-4 bg-gradient-to-tr from-purple-200/40 via-blue-200/40 to-teal-200/40 blur-2xl rounded-3xl" />
-              <div className="relative bg-white dark:bg-gray-900 border rounded-2xl p-6 shadow-xl">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-2 w-2 bg-red-400 rounded-full" />
-                  <div className="h-2 w-2 bg-yellow-400 rounded-full" />
-                  <div className="h-2 w-2 bg-green-400 rounded-full" />
-                </div>
-                <img
-                  src="/screenshots/gaia-dashboard.png"
-                  alt="GaIA Dashboard preview"
-                  className="rounded-lg border"
-                />
-              </div>
+            <div className="text-center">
+              <Activity className="h-10 w-10 text-emerald-500 mx-auto mb-3" />
+              <h3 className="font-semibold mb-1">Monitoreo de Salud</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Seguimiento continuo de indicadores vitales y bienestar
+              </p>
+            </div>
+
+            <div className="text-center">
+              <Users className="h-10 w-10 text-blue-500 mx-auto mb-3" />
+              <h3 className="font-semibold mb-1">Red de Apoyo</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Conecta familias, médicos y cuidadores en una sola plataforma
+              </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Sección Auth */}
-      <div id="auth" className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-8">
+          {/* Columna derecha: formulario de inicio de sesión */}
           <Card className="border-2">
             <CardHeader>
-              <CardTitle>{isLogin ? "Iniciar sesión" : "Crear cuenta"}</CardTitle>
-              <CardDescription>
-                {isLogin
-                  ? "Accede a tu panel de control y gestiona el cuidado de tus mayores"
-                  : "Crea tu cuenta para empezar a usar GaIA"}
-              </CardDescription>
+              <CardTitle>Iniciar Sesión</CardTitle>
+              <CardDescription>Accede a tu panel de monitoreo GaIA</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                {!isLogin && (
-                  <div>
-                    <Label htmlFor="name">Nombre</Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder="Nombre y apellidos"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required={!isLogin}
-                    />
-                  </div>
-                )}
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Correo Electrónico</Label>
                   <Input
                     id="email"
-                    name="email"
                     type="email"
                     placeholder="tu@email.com"
-                    value={formData.email}
-                    onChange={handleChange}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
+
                 <div>
                   <Label htmlFor="password">Contraseña</Label>
                   <Input
                     id="password"
-                    name="password"
                     type="password"
                     placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
                   />
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                  disabled={authMutation.isPending}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  disabled={loginMutation.isPending}
                 >
-                  {authMutation.isPending
-                    ? (isLogin ? "Entrando…" : "Creando cuenta…")
-                    : (isLogin ? "Entrar" : "Crear cuenta")}
+                  {loginMutation.isPending ? "Entrando…" : "Iniciar Sesión"}
                 </Button>
 
-                <div className="text-sm text-center text-gray-500 dark:text-gray-400">
-                  {isLogin ? (
-                    <>
-                      ¿No tienes cuenta?{" "}
-                      <button
-                        type="button"
-                        className="text-purple-600 hover:underline"
-                        onClick={() => setIsLogin(false)}
-                      >
-                        Regístrate
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      ¿Ya tienes cuenta?{" "}
-                      <button
-                        type="button"
-                        className="text-purple-600 hover:underline"
-                        onClick={() => setIsLogin(true)}
-                      >
-                        Inicia sesión
-                      </button>
-                    </>
-                  )}
-                </div>
+                <p className="text-center text-sm text-gray-500">
+                  ¿No tienes cuenta? <span className="text-purple-600">Regístrate</span>
+                </p>
               </form>
             </CardContent>
           </Card>
-
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mb-16 px-4 md:px-0">
-            <div className="text-center">
-              <Heart className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Cuidado Emocional</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Análisis de sentimientos y estado de ánimo en tiempo real
-              </p>
-            </div>
-            <div className="text-center">
-              <Activity className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Monitoreo de Salud</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Seguimiento continuo de indicadores vitales y bienestar general
-              </p>
-            </div>
-            <div className="text-center">
-              <Shield className="h-12 w-12 text-blue-500 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Seguridad</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Todos los datos están protegidos con los más altos estándares de seguridad. 
-                Control total sobre quién puede acceder a la información del adulto mayor.
-              </p>
-            </div>
-          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
