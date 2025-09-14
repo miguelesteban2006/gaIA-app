@@ -1,17 +1,17 @@
-// server/index.ts
-import express from 'express';
-import cors from 'cors';
-import cookieParser from 'cookie-parser';
-import http from 'http';
-import { Pool } from 'pg';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+// server/index.js
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const http = require('http');
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const server = http.createServer(app);
 
-// ----- CONFIG GENERAL -----
-app.set('trust proxy', 1); // Render va detrás de proxy
+// ----- Config básica -----
+app.set('trust proxy', 1);                       // necesario en Render para cookies
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 
@@ -20,14 +20,14 @@ const allowedOrigins = [
   'https://gaia-app.pages.dev',
   'http://localhost:5173'
 ];
-function isAllowedOrigin(origin?: string) {
-  if (!origin) return true;
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // curl/Postman
   try {
     const h = new URL(origin).hostname;
     return h === 'gaia-app.pages.dev' || h.endsWith('.gaia-app.pages.dev') || h === 'localhost';
   } catch { return false; }
 }
-const corsConfig: cors.CorsOptions = {
+const corsConfig = {
   origin(origin, cb) {
     if (isAllowedOrigin(origin)) return cb(null, true);
     return cb(new Error('Origin not allowed by CORS'));
@@ -37,25 +37,22 @@ const corsConfig: cors.CorsOptions = {
   allowedHeaders: ['Content-Type','Authorization']
 };
 app.use(cors(corsConfig));
-app.options('*', cors(corsConfig));
+app.options('*', cors(corsConfig));              // preflight global
 
-// ----- HEALTH -----
+// ----- Health -----
 app.get('/healthz', (_req, res) => res.status(200).send('ok'));
 
-// ----- DB (Neon/Postgres) -----
+// ----- DB (Neon / Postgres) -----
 const connectionString = process.env.DATABASE_URL;
 if (!connectionString) {
   console.error('ERROR: DATABASE_URL no definido');
   process.exit(1);
 }
-// Recomendado: que tu DATABASE_URL lleve `?sslmode=require`
 const pool = new Pool({
-  connectionString,
+  connectionString,              // asegúrate de que lleva ?sslmode=require
   ssl: { rejectUnauthorized: false }
 });
-pool.on('error', (e) => {
-  console.error('Pool error:', e);
-});
+pool.on('error', (e) => console.error('Pool error:', e));
 
 async function ensureSchema() {
   await pool.query(`
@@ -69,49 +66,41 @@ async function ensureSchema() {
   `);
   console.log('[DB] Schema OK');
 }
-
 async function dbSanity() {
   const r = await pool.query('select now() as now, current_user as "user"');
   console.log('[DB] Connected:', r.rows[0]);
 }
-
-// Arranca comprobando DB
 (async () => {
   try {
     await dbSanity();
     await ensureSchema();
-  } catch (e: any) {
+  } catch (e) {
     console.error('[DB] Startup error:', e?.message || e);
     process.exit(1);
   }
 })();
 
-// ----- HELPERS -----
+// ----- Helpers -----
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
+const signToken = (payload) => jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
-function normalizeEmail(email: string) {
-  return (email || '').trim().toLowerCase();
-}
-// Alias para nombre
-function pickName(body: any) {
-  return body?.name ?? body?.fullName ?? body?.username ?? body?.nombre ?? '';
-}
-// Alias para password
-function pickPassword(body: any) {
-  return body?.password ?? body?.pass ?? body?.contrasena ?? body?.contraseña ?? '';
-}
+const normalizeEmail = (email) => (email || '').trim().toLowerCase();
+// acepta name / fullName / username / nombre
+const pickName = (b) => (b?.name ?? b?.fullName ?? b?.username ?? b?.nombre ?? '');
+// acepta password / pass / contrasena / contraseña
+const pickPassword = (b) => (b?.password ?? b?.pass ?? b?.contrasena ?? b?.contraseña ?? '');
 
-// ----- DEBUG (para ti; quita cuando termines) -----
+// ----- Debug DB (quítalo en prod si quieres) -----
 app.get('/debug/db', async (_req, res) => {
   try {
     const r = await pool.query('select now() as now, current_user as "user"');
     res.json({ ok: true, db: r.rows[0] });
-  } catch (e: any) {
-    res.status(500).json({ ok: false, error: e?.message || String(e), code: (e as any)?.code });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e?.message || String(e), code: e?.code });
   }
 });
 
-// ----- AUTH: REGISTER -----
+// ----- AUTH: Register -----
 app.post('/api/register', async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email || '');
@@ -124,7 +113,7 @@ app.post('/api/register', async (req, res) => {
     }
 
     const exists = await pool.query('SELECT 1 FROM users WHERE email = $1 LIMIT 1', [email]);
-    if (exists.rowCount && exists.rowCount > 0) {
+    if (exists.rowCount > 0) {
       return res.status(409).json({ ok: false, error: 'USER_EXISTS' });
     }
 
@@ -137,29 +126,24 @@ app.post('/api/register', async (req, res) => {
     );
     const user = inserted.rows[0];
 
-    const token = jwt.sign({ sub: String(user.id), email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    const token = signToken({ sub: String(user.id), email: user.email });
     res.cookie('token', token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: true,               // HTTPS obligatorio
+      sameSite: 'none',           // cross-site (Pages → Render)
       maxAge: 1000 * 60 * 60 * 24 * 7
     });
 
     return res.status(201).json({ ok: true, user });
-  } catch (e: any) {
-    const code = (e as any)?.code;
-    if (code === '23505') { // unique_violation
-      return res.status(409).json({ ok: false, error: 'USER_EXISTS' });
-    }
-    if (code === '42P01') { // undefined_table
-      return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
-    }
+  } catch (e) {
+    if (e?.code === '23505') return res.status(409).json({ ok: false, error: 'USER_EXISTS' }); // unique_violation
+    if (e?.code === '42P01') return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
     console.error('POST /api/register error', e);
     return res.status(500).json({ ok: false, error: 'INTERNAL_ERROR' });
   }
 });
 
-// ----- AUTH: LOGIN -----
+// ----- AUTH: Login -----
 app.post('/api/login', async (req, res) => {
   try {
     const email = normalizeEmail(req.body?.email || '');
@@ -183,7 +167,7 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ ok: false, error: 'INVALID_CREDENTIALS' });
     }
 
-    const token = jwt.sign({ sub: String(user.id), email: user.email }, JWT_SECRET, { expiresIn: '7d' });
+    const token = signToken({ sub: String(user.id), email: user.email });
     res.cookie('token', token, {
       httpOnly: true,
       secure: true,
@@ -192,19 +176,37 @@ app.post('/api/login', async (req, res) => {
     });
 
     return res.status(200).json({ ok: true, user: { id: user.id, name: user.name, email: user.email } });
-  } catch (e: any) {
-    const code = (e as any)?.code;
-    if (code === '42P01') {
-      return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
-    }
+  } catch (e) {
+    if (e?.code === '42P01') return res.status(500).json({ ok: false, error: 'TABLE_MISSING' });
     console.error('POST /api/login error', e);
     return res.status(500).json({ ok: false, error: 'INTERNAL_ERROR' });
   }
 });
 
-// ----- ARRANQUE -----
-const PORT = parseInt(process.env.PORT ?? '5000', 10);
-const HOST = process.env.HOST ?? '0.0.0.0';
+// ----- AUTH: middleware + /api/me -----
+function auth(req, res, next) {
+  const bearer = req.headers.authorization?.split(' ')[1];
+  const token = req.cookies?.token || bearer;
+  if (!token) return res.status(401).json({ ok: false, error: 'NO_TOKEN' });
+  try {
+    const payload = jwt.verify(token, JWT_SECRET); // { sub, email }
+    req.user = payload;
+    next();
+  } catch {
+    return res.status(401).json({ ok: false, error: 'INVALID_TOKEN' });
+  }
+}
+
+app.get('/api/me', auth, async (req, res) => {
+  const userId = req.user.sub;
+  const db = await pool.query('SELECT id, name, email FROM users WHERE id = $1', [userId]);
+  if (db.rowCount === 0) return res.status(404).json({ ok: false, error: 'USER_NOT_FOUND' });
+  res.json({ ok: true, user: db.rows[0] });
+});
+
+// ----- Arranque -----
+const PORT = parseInt(process.env.PORT || '5000', 10);
+const HOST = process.env.HOST || '0.0.0.0';
 server.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
