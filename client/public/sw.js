@@ -1,37 +1,52 @@
-// Service Worker para GaIA PWA - compatible con API en otro origen
-const CACHE_NAME = 'gaia-v13';
-const STATIC_CACHE_URLS = [
-  '/',
+// Service Worker para GaIA PWA — versión segura para Pages + API externa
+// - No intercepta peticiones no-GET.
+// - No intercepta /.well-known/* (ej. assetlinks.json).
+// - No intercepta recursos cross-origin (API, CDNs, etc.).
+// - No intercepta /api/ ni siquiera en mismo origen (para evitar CORS/preflight raros).
+// - Estrategias: 
+//    * Navegación (HTML): Network First, fallback a cache y, si falla, a '/'
+//    * Estáticos (mismo origen): Cache First con refresco en background
+
+const CACHE_NAME = 'gaia-v15'; // ¡sube versión cuando cambies el SW!
+const APP_SHELL = [
+  '/',                 // shell de la app
   '/manifest.json',
   '/icons/gaia-192.png',
   '/icons/gaia-512.png',
-  '/assets/index.css',
-  '/assets/index.js'
 ];
 
-// Endpoints que jamás se cachean (auth)
-const NEVER_CACHE = ['/api/login', '/api/register'];
-
-// Endpoints GET que toleran cache (solo si están en MISMO origen)
-const CACHE_FRIENDLY_API = [
-  '/api/elderly-users',
-  '/api/interactions',
-  '/api/stats',
-  '/api/sentiment',
-  '/api/health-alerts'
-];
+// Utilidad: guarda en caché si la respuesta es OK (clonando antes)
+const putInCache = async (request, response) => {
+  try {
+    if (!response || !response.ok) return;
+    const cache = await caches.open(CACHE_NAME);
+    await cache.put(request, response.clone());
+  } catch (_) {
+    // silenciar errores de cache (quota, etc.)
+  }
+};
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_CACHE_URLS))
-      .then(() => self.skipWaiting())
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.addAll(APP_SHELL);
+      // Activa inmediatamente el nuevo SW
+      self.skipWaiting();
+    })()
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k))))
-      .then(() => self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : Promise.resolve()))
+      );
+      // Toma control de clientes abiertos
+      self.clients.claim();
+    })()
   );
 });
 
@@ -39,54 +54,56 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // 1) Si la petición NO es GET, no interceptar (dejar ir a la red)
+  // 0) No interceptar nada que no sea GET
   if (request.method !== 'GET') return;
 
-  // 2) Si la API está en OTRO ORIGEN, no interceptar (evita CORS/preflight raros)
+  // 1) No interceptar /.well-known/* (p.ej. assetlinks.json de TWA)
+  if (url.pathname.startsWith('/.well-known/')) return;
+
+  // 2) No interceptar recursos cross-origin (API externa, CDN, fuentes, etc.)
   const sameOrigin = url.origin === self.location.origin;
   if (!sameOrigin) return;
 
-  // 3) Si es API en MISMO origen:
-  if (url.pathname.startsWith('/api/')) {
-    // Nunca cachear auth
-    if (NEVER_CACHE.some(p => url.pathname.startsWith(p))) return;
+  // 3) No interceptar API ni siquiera en mismo origen (más simple y seguro)
+  if (url.pathname.startsWith('/api/')) return;
 
-    // Cache First opcional para endpoints "amigables"
-    if (CACHE_FRIENDLY_API.some(p => url.pathname.startsWith(p))) {
-      event.respondWith(
-        caches.match(request).then(cached => {
-          if (cached) {
-            // Actualiza en background
-            fetch(request).then(r => r.ok && caches.open(CACHE_NAME).then(c => c.put(request, r.clone()))).catch(()=>{});
-            return cached;
-          }
-          return fetch(request).then(r => {
-            if (r.ok) caches.open(CACHE_NAME).then(c => c.put(request, r.clone()));
-            return r;
-          });
-        })
-      );
-      return;
-    }
-
-    // Otros GET de API (mismo origen): Network First con fallback a cache
+  // 4) Navegación (HTML): Network First con fallback a cache y, si todo falla, a '/'
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).then(r => {
-        if (r.ok) caches.open(CACHE_NAME).then(c => c.put(request, r.clone()));
-        return r;
-      }).catch(() => caches.match(request))
+      (async () => {
+        try {
+          const netRes = await fetch(request);
+          // Si es HTML, guarda una copia (algunos servidores devuelven text/html en navegaciones)
+          putInCache(request, netRes);
+          return netRes;
+        } catch (_) {
+          // Sin red: intenta cache
+          const cached = await caches.match(request);
+          if (cached) return cached;
+          // Fallback a shell si tampoco está la ruta en caché
+          const shell = await caches.match('/');
+          return shell || new Response('Offline', { status: 503, statusText: 'Offline' });
+        }
+      })()
     );
     return;
   }
 
-  // 4) Assets estáticos / navegación: Cache First + fallback shell
+  // 5) Estáticos (mismo origen): Cache First + refresco en background
   event.respondWith(
-    caches.match(request).then(cached => {
-      if (cached) return cached;
-      return fetch(request).then(r => {
-        if (r.ok) caches.open(CACHE_NAME).then(c => c.put(request, r.clone()));
-        return r;
-      });
-    }).catch(() => (request.mode === 'navigate' ? caches.match('/') : undefined))
+    (async () => {
+      const cached = await caches.match(request);
+      if (cached) {
+        // Refresco en background (no bloquea la respuesta)
+        fetch(request)
+          .then((r) => putInCache(request, r))
+          .catch(() => {});
+        return cached;
+      }
+      // No estaba en caché: ve a red y guarda si OK
+      const netRes = await fetch(request);
+      putInCache(request, netRes);
+      return netRes;
+    })()
   );
 });
