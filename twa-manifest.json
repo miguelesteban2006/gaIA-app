@@ -16,20 +16,21 @@
   "iconUrl": "https://gaia-app.pages.dev/icons/gaia-512.png",
   "maskableIconUrl": "https://gaia-app.pages.dev/icons/gaia-512.png",
   "monochromeIconUrl": "",
-  "splashScreen": { "backgroundColor": "#A855F7" },
   "splashScreenFadeOutDuration": 0,
   "signingKey": {
     "path": "/home/miguel-esteban/proyectos/keys/gaia-upload.jks",
     "alias": "gaia-upload"
   },
-  "appVersionName": "2.0.1",
-  "appVersionCode": 7,
+  "appVersionName": "3",
+  "appVersionCode": 8,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://gaia-app.pages.dev/manifest.json",
   "fallbackType": "customtabs",
   "features": {},
-  "alphaDependencies": { "enabled": false },
+  "alphaDependencies": {
+    "enabled": false
+  },
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
@@ -39,5 +40,5 @@
   "fingerprints": [],
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
-  "appVersion": "2.0.1"
+  "appVersion": "3"
 }

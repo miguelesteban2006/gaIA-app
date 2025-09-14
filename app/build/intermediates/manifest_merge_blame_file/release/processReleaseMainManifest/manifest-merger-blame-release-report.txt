@@ -1,0 +1,368 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<!--
+3    Copyright 2019 Google Inc. All Rights Reserved.
+4
+5     Licensed under the Apache License, Version 2.0 (the "License");
+6     you may not use this file except in compliance with the License.
+7     You may obtain a copy of the License at
+8
+9         http://www.apache.org/licenses/LICENSE-2.0
+10
+11     Unless required by applicable law or agreed to in writing, software
+12     distributed under the License is distributed on an "AS IS" BASIS,
+13     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+14     See the License for the specific language governing permissions and
+15     limitations under the License.
+16-->
+17<!--
+18 The "package" attribute is rewritten by the Gradle build with the value of applicationId.
+19     It is still required here, as it is used to derive paths, for instance when referring
+20     to an Activity by ".MyActivity" instead of the full name. If more Activities are added to the
+21     application, the package attribute will need to reflect the correct path in order to use
+22     the abbreviated format.
+23-->
+24<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+25    package="com.gaiaapp.twa"
+26    android:versionCode="8"
+27    android:versionName="3" >
+28
+29    <uses-sdk
+30        android:minSdkVersion="21"
+31        android:targetSdkVersion="35" />
+32
+33    <queries>
+33-->[com.google.androidbrowserhelper:androidbrowserhelper:2.6.2] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/5053e02be90783e54992393be394bb70/transformed/androidbrowserhelper-2.6.2/AndroidManifest.xml:22:5-30:15
+34        <intent>
+34-->[com.google.androidbrowserhelper:androidbrowserhelper:2.6.2] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/5053e02be90783e54992393be394bb70/transformed/androidbrowserhelper-2.6.2/AndroidManifest.xml:23:9-29:18
+35            <action android:name="android.intent.action.VIEW" />
+35-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:149:17-68
+35-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:149:25-66
+36
+37            <category android:name="android.intent.category.BROWSABLE" />
+37-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:151:17-77
+37-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:151:27-75
+38
+39            <data android:scheme="https" />
+39-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:152:17-155:19
+39-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:152:23-45
+40        </intent>
+41    </queries>
+42
+43    <permission
+43-->[androidx.core:core:1.13.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:22:5-24:47
+44        android:name="com.gaiaapp.twa.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+44-->[androidx.core:core:1.13.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:23:9-81
+45        android:protectionLevel="signature" />
+45-->[androidx.core:core:1.13.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:24:9-44
+46
+47    <uses-permission android:name="com.gaiaapp.twa.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+47-->[androidx.core:core:1.13.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:26:5-97
+47-->[androidx.core:core:1.13.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:26:22-94
+48
+49    <application
+49-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:33:5-194:19
+50        android:name="com.gaiaapp.twa.Application"
+50-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:34:9-35
+51        android:allowBackup="true"
+51-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:35:9-35
+52        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+52-->[androidx.core:core:1.13.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/a5429f7b20c607b890f08b5283ad4ec0/transformed/core-1.13.0/AndroidManifest.xml:28:18-86
+53        android:extractNativeLibs="true"
+54        android:icon="@mipmap/ic_launcher"
+54-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:36:9-43
+55        android:label="@string/appName"
+55-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:37:9-40
+56        android:manageSpaceActivity="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity"
+56-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:39:9-105
+57        android:supportsRtl="true"
+57-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:41:9-35
+58        android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+58-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:42:9-68
+59        <meta-data
+59-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:44:9-46:58
+60            android:name="asset_statements"
+60-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:45:13-44
+61            android:resource="@string/assetStatements" />
+61-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:46:13-55
+62        <meta-data
+62-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:49:13-51:58
+63            android:name="web_manifest_url"
+63-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:50:17-48
+64            android:value="@string/webManifestUrl" />
+64-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:51:17-55
+65        <meta-data
+65-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:54:9-56:52
+66            android:name="twa_generator"
+66-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:55:13-41
+67            android:value="@string/generatorApp" />
+67-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:56:13-49
+68
+69        <activity android:name="com.google.androidbrowserhelper.trusted.ManageDataLauncherActivity" >
+69-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:63:13-67:24
+69-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:63:23-104
+70            <meta-data
+70-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:64:13-66:53
+71                android:name="android.support.customtabs.trusted.MANAGE_SPACE_URL"
+71-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:65:17-83
+72                android:value="@string/launchUrl" />
+72-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:66:17-50
+73        </activity>
+74        <activity
+74-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:70:9-161:20
+75            android:name="com.gaiaapp.twa.LauncherActivity"
+75-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:70:19-50
+76            android:alwaysRetainTaskState="true"
+76-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:71:13-49
+77            android:exported="true"
+77-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:73:13-36
+78            android:label="@string/launcherName" >
+78-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:72:13-49
+79            <meta-data
+79-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:74:13-75:53
+80                android:name="android.support.customtabs.trusted.DEFAULT_URL"
+80-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:74:24-85
+81                android:value="@string/launchUrl" />
+81-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:75:17-50
+82            <meta-data
+82-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:77:13-79:58
+83                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
+83-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:78:17-83
+84                android:resource="@color/colorPrimary" />
+84-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:79:17-55
+85            <meta-data
+85-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:83:13-85:62
+86                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR_DARK"
+86-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:84:17-88
+87                android:resource="@color/colorPrimaryDark" />
+87-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:85:17-59
+88            <meta-data
+88-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:87:13-89:61
+89                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
+89-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:88:17-87
+90                android:resource="@color/navigationColor" />
+90-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:89:17-58
+91            <meta-data
+91-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:91:13-93:65
+92                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR_DARK"
+92-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:92:17-92
+93                android:resource="@color/navigationColorDark" />
+93-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:93:17-62
+94            <meta-data
+94-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:95:13-97:68
+95                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
+95-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:96:17-84
+96                android:resource="@color/navigationDividerColor" />
+96-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:97:17-65
+97            <meta-data
+97-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:99:13-101:72
+98                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
+98-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:100:17-89
+99                android:resource="@color/navigationDividerColorDark" />
+99-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:101:17-69
+100            <meta-data
+100-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:103:13-104:54
+101                android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
+101-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:103:24-95
+102                android:resource="@drawable/splash" />
+102-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:104:17-52
+103            <meta-data
+103-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:106:13-107:60
+104                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
+104-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:106:24-104
+105                android:resource="@color/backgroundColor" />
+105-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:107:17-58
+106            <meta-data
+106-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:109:13-110:71
+107                android:name="android.support.customtabs.trusted.SPLASH_SCREEN_FADE_OUT_DURATION"
+107-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:109:24-105
+108                android:value="@integer/splashScreenFadeOutDuration" />
+108-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:110:17-69
+109            <meta-data
+109-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:112:13-113:60
+110                android:name="android.support.customtabs.trusted.FILE_PROVIDER_AUTHORITY"
+110-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:112:24-97
+111                android:value="@string/providerAuthority" />
+111-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:113:17-58
+112            <meta-data
+112-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:115:13-97
+113                android:name="android.app.shortcuts"
+113-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:115:24-60
+114                android:resource="@xml/shortcuts" />
+114-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:115:61-94
+115            <meta-data
+115-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:117:13-118:56
+116                android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
+116-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:117:24-91
+117                android:value="@string/fallbackType" />
+117-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:118:17-53
+118            <meta-data
+118-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:121:17-123:61
+119                android:name="android.support.customtabs.trusted.METADATA_SHARE_TARGET"
+119-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:122:21-92
+120                android:resource="@string/shareTarget" />
+120-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:123:21-59
+121            <meta-data
+121-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:128:13-129:54
+122                android:name="android.support.customtabs.trusted.SCREEN_ORIENTATION"
+122-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:128:24-92
+123                android:value="@string/orientation" />
+123-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:129:17-52
+124
+125            <intent-filter>
+125-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:134:17-140:33
+126                <action android:name="android.intent.action.SEND" />
+126-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:136:25-77
+126-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:136:33-74
+127
+128                <category android:name="android.intent.category.DEFAULT" />
+128-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:138:21-80
+128-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:138:31-77
+129            </intent-filter>
+130            <intent-filter>
+130-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:143:13-146:29
+131                <action android:name="android.intent.action.MAIN" />
+131-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:144:17-69
+131-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:144:25-66
+132
+133                <category android:name="android.intent.category.LAUNCHER" />
+133-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:145:17-77
+133-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:145:27-74
+134            </intent-filter>
+135            <intent-filter android:autoVerify="true" >
+135-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:148:13-156:29
+135-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:148:28-53
+136                <action android:name="android.intent.action.VIEW" />
+136-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:149:17-68
+136-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:149:25-66
+137
+138                <category android:name="android.intent.category.DEFAULT" />
+138-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:138:21-80
+138-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:138:31-77
+139                <category android:name="android.intent.category.BROWSABLE" />
+139-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:151:17-77
+139-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:151:27-75
+140
+141                <data
+141-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:152:17-155:19
+142                    android:host="@string/hostName"
+142-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:153:21-52
+143                    android:scheme="https" />
+143-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:152:23-45
+144            </intent-filter>
+145        </activity>
+146        <activity android:name="com.google.androidbrowserhelper.trusted.FocusActivity" />
+146-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:163:9-90
+146-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:163:19-87
+147        <activity
+147-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:165:9-166:62
+148            android:name="com.google.androidbrowserhelper.trusted.WebViewFallbackActivity"
+148-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:165:19-97
+149            android:configChanges="orientation|screenSize" />
+149-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:166:13-59
+150
+151        <provider
+151-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:168:9-176:20
+152            android:name="androidx.core.content.FileProvider"
+152-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:169:13-62
+153            android:authorities="@string/providerAuthority"
+153-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:170:13-60
+154            android:exported="false"
+154-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:172:13-37
+155            android:grantUriPermissions="true" >
+155-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:171:13-47
+156            <meta-data
+156-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:173:13-175:53
+157                android:name="android.support.FILE_PROVIDER_PATHS"
+157-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:174:17-67
+158                android:resource="@xml/filepaths" />
+158-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:175:17-50
+159        </provider>
+160
+161        <service
+161-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:178:9-189:19
+162            android:name="com.gaiaapp.twa.DelegationService"
+162-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:179:13-46
+163            android:enabled="@bool/enableNotification"
+163-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:180:13-55
+164            android:exported="@bool/enableNotification" >
+164-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:181:13-56
+165            <intent-filter>
+165-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:185:13-188:29
+166                <action android:name="android.support.customtabs.trusted.TRUSTED_WEB_ACTIVITY_SERVICE" />
+166-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:186:17-105
+166-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:186:25-103
+167
+168                <category android:name="android.intent.category.DEFAULT" />
+168-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:138:21-80
+168-->/home/miguel-esteban/gaIA-app/app/src/main/AndroidManifest.xml:138:31-77
+169            </intent-filter>
+170        </service>
+171
+172        <provider
+172-->[androidx.emoji2:emoji2:1.3.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+173            android:name="androidx.startup.InitializationProvider"
+173-->[androidx.emoji2:emoji2:1.3.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+174            android:authorities="com.gaiaapp.twa.androidx-startup"
+174-->[androidx.emoji2:emoji2:1.3.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+175            android:exported="false" >
+175-->[androidx.emoji2:emoji2:1.3.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+176            <meta-data
+176-->[androidx.emoji2:emoji2:1.3.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+177                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+177-->[androidx.emoji2:emoji2:1.3.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+178                android:value="androidx.startup" />
+178-->[androidx.emoji2:emoji2:1.3.0] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/5cb7738f5242d8c4e38c8ffa2b265b31/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+179            <meta-data
+179-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/4bc52031417e9743197e36b704fe409f/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:29:13-31:52
+180                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+180-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/4bc52031417e9743197e36b704fe409f/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:30:17-78
+181                android:value="androidx.startup" />
+181-->[androidx.lifecycle:lifecycle-process:2.6.2] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/4bc52031417e9743197e36b704fe409f/transformed/lifecycle-process-2.6.2/AndroidManifest.xml:31:17-49
+182            <meta-data
+182-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+183                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+183-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+184                android:value="androidx.startup" />
+184-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+185        </provider>
+186
+187        <receiver
+187-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+188            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+188-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+189            android:directBootAware="false"
+189-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+190            android:enabled="true"
+190-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+191            android:exported="true"
+191-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+192            android:permission="android.permission.DUMP" >
+192-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+193            <intent-filter>
+193-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+194                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+194-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+194-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+195            </intent-filter>
+196            <intent-filter>
+196-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+197                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+197-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+197-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+198            </intent-filter>
+199            <intent-filter>
+199-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+200                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+200-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+200-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+201            </intent-filter>
+202            <intent-filter>
+202-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+203                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+203-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+203-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/miguel-esteban/.gradle/caches/8.11.1/transforms/bb4a0d32d1b17a1dcea0cf71d2bde5e0/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+204            </intent-filter>
+205        </receiver>
+206    </application>
+207
+208</manifest>
