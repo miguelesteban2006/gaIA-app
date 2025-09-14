@@ -1,21 +1,18 @@
-// Service Worker para GaIA PWA - Optimizado para funcionamiento independiente
-const CACHE_NAME = 'gaia-v12-optimized';
+// Service Worker para GaIA PWA - compatible con API en otro origen
+const CACHE_NAME = 'gaia-v13';
 const STATIC_CACHE_URLS = [
   '/',
   '/manifest.json',
-  '/icons/gaia-icon.png',
-  '/icons/gaia-icon.svg',
+  '/icons/gaia-192.png',
+  '/icons/gaia-512.png',
   '/assets/index.css',
   '/assets/index.js'
 ];
 
-// URLs que requieren red activa (autenticación crítica)
-const NEVER_CACHE = [
-  '/api/login',
-  '/api/register'
-];
+// Endpoints que jamás se cachean (auth)
+const NEVER_CACHE = ['/api/login', '/api/register'];
 
-// Datos que se pueden mostrar desde cache en modo offline
+// Endpoints GET que toleran cache (solo si están en MISMO origen)
 const CACHE_FRIENDLY_API = [
   '/api/elderly-users',
   '/api/interactions',
@@ -24,128 +21,72 @@ const CACHE_FRIENDLY_API = [
   '/api/health-alerts'
 ];
 
-// Instalar Service Worker
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Service Worker caching static files');
-        return cache.addAll(STATIC_CACHE_URLS);
-      })
-      .then(() => {
-        return self.skipWaiting();
-      })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_CACHE_URLS))
+      .then(() => self.skipWaiting())
   );
 });
 
-// Activar Service Worker
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Service Worker deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    }).then(() => {
-      return self.clients.claim();
-    })
+    caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
-// Estrategia de cache: Network First para API, Cache First para assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // API requests - Estrategia inteligente para funcionamiento independiente
+  // 1) Si la petición NO es GET, no interceptar (dejar ir a la red)
+  if (request.method !== 'GET') return;
+
+  // 2) Si la API está en OTRO ORIGEN, no interceptar (evita CORS/preflight raros)
+  const sameOrigin = url.origin === self.location.origin;
+  if (!sameOrigin) return;
+
+  // 3) Si es API en MISMO origen:
   if (url.pathname.startsWith('/api/')) {
-    const shouldNeverCache = NEVER_CACHE.some(path => url.pathname.startsWith(path));
-    const isCacheFriendly = CACHE_FRIENDLY_API.some(path => url.pathname.startsWith(path));
-    
-    if (shouldNeverCache) {
-      // Auth endpoints requieren red activa
-      event.respondWith(fetch(request));
-    } else if (isCacheFriendly) {
-      // Datos del usuario: Cache First para funcionamiento offline
+    // Nunca cachear auth
+    if (NEVER_CACHE.some(p => url.pathname.startsWith(p))) return;
+
+    // Cache First opcional para endpoints "amigables"
+    if (CACHE_FRIENDLY_API.some(p => url.pathname.startsWith(p))) {
       event.respondWith(
-        caches.match(request).then((cached) => {
+        caches.match(request).then(cached => {
           if (cached) {
-            // Actualizar cache en background si hay red
-            fetch(request).then((response) => {
-              if (response.ok) {
-                caches.open(CACHE_NAME).then((cache) => {
-                  cache.put(request, response.clone());
-                });
-              }
-            }).catch(() => {});
+            // Actualiza en background
+            fetch(request).then(r => r.ok && caches.open(CACHE_NAME).then(c => c.put(request, r.clone()))).catch(()=>{});
             return cached;
           }
-          // Si no hay cache, intentar red
-          return fetch(request).then((response) => {
-            if (response.ok) {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(request, responseClone);
-              });
-            }
-            return response;
+          return fetch(request).then(r => {
+            if (r.ok) caches.open(CACHE_NAME).then(c => c.put(request, r.clone()));
+            return r;
           });
         })
       );
-    } else {
-      // Otros endpoints: Network First con fallback a cache
-      event.respondWith(
-        fetch(request)
-          .then((response) => {
-            if (response.ok) {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME).then((cache) => {
-                cache.put(request, responseClone);
-              });
-            }
-            return response;
-          })
-          .catch(() => {
-            return caches.match(request) || new Response(
-              JSON.stringify({ error: 'Sin conexión. Funcionalidad limitada disponible.' }),
-              { status: 503, headers: { 'Content-Type': 'application/json' } }
-            );
-          })
-      );
+      return;
     }
+
+    // Otros GET de API (mismo origen): Network First con fallback a cache
+    event.respondWith(
+      fetch(request).then(r => {
+        if (r.ok) caches.open(CACHE_NAME).then(c => c.put(request, r.clone()));
+        return r;
+      }).catch(() => caches.match(request))
+    );
     return;
   }
 
-  // Static assets - Cache First
+  // 4) Assets estáticos / navegación: Cache First + fallback shell
   event.respondWith(
-    caches.match(request)
-      .then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        
-        return fetch(request).then((response) => {
-          // Cache successful responses
-          if (response.ok) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          return response;
-        });
-      })
-      .catch(() => {
-        // Fallback for navigation requests
-        if (request.mode === 'navigate') {
-          return caches.match('/');
-        }
-      })
+    caches.match(request).then(cached => {
+      if (cached) return cached;
+      return fetch(request).then(r => {
+        if (r.ok) caches.open(CACHE_NAME).then(c => c.put(request, r.clone()));
+        return r;
+      });
+    }).catch(() => (request.mode === 'navigate' ? caches.match('/') : undefined))
   );
 });

@@ -1,47 +1,29 @@
 {
   "packageId": "com.gaiaapp.twa",
-  "host": "e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev",
+  "host": "gaia-app.pages.dev",
   "name": "ElderCompanion: GaIA",
   "launcherName": "GaIA",
   "display": "standalone",
   "themeColor": "#A855F7",
-  "themeColorDark": "#000000",
-  "navigationColor": "#000000",
-  "navigationColorDark": "#000000",
-  "navigationDividerColor": "#000000",
-  "navigationDividerColorDark": "#000000",
   "backgroundColor": "#A855F7",
-  "enableNotifications": true,
   "startUrl": "/?standalone=true",
-  "iconUrl": "https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/icons/gaia-512.png",
-  "maskableIconUrl": "https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/icons/gaia-512.png",
-  "monochromeIconUrl": "https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/icons/gaia-512.png",
+  "iconUrl": "https://gaia-app.pages.dev/icons/gaia-512.png",
+  "maskableIconUrl": "https://gaia-app.pages.dev/icons/gaia-512.png",
+  "monochromeIconUrl": "",         // (opcional) URL a icono blanco 512x512
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "/home/miguel-esteban/proyectos/keys/gaia-upload.jks",
     "alias": "gaia-upload"
   },
-  "appVersionName": "3",
-  "appVersionCode": 3,
-  "shortcuts": [],
-  "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/manifest.json",
-  "fallbackType": "customtabs",
-  "features": {},
-  "alphaDependencies": {
-    "enabled": false
-  },
-  "enableSiteSettingsShortcut": true,
-  "isChromeOSOnly": false,
-  "isMetaQuest": false,
-  "fullScopeUrl": "https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev/",
+  "appVersionName": "4",
+  "appVersionCode": 4,
+  "webManifestUrl": "https://gaia-app.pages.dev/manifest.json",
+  "fullScopeUrl": "https://gaia-app.pages.dev/",
   "minSdkVersion": 21,
   "orientation": "portrait",
-  "fingerprints": [],
-  "additionalTrustedOrigins": [],
-  "retainedBundles": [],
-  "protocolHandlers": [],
-  "fileHandlers": [],
-  "launchHandlerClientMode": "",
-  "appVersion": "3"
+  "additionalTrustedOrigins": [
+    "https://e00579c0-dd21-4512-9a3f-d31195d8cb49-00-23yt4imb5dig7.janeway.replit.dev"
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "features": {}
 }

@@ -48,3 +48,12 @@ export const API_CONFIG = {
   retries: 2,
   retryDelay: 1000 // 1 segundo
 };
+
+// client/src/lib/apiConfig.ts
+const base = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+
+export const apiUrl = (path: string) =>
+  new URL(path.startsWith('/') ? path : `/${path}`, base || window.location.origin).toString();
+
+// Ejemplo de uso:
+// fetch(apiUrl('/api/register'), { method: 'POST', headers: {...}, body: ... })

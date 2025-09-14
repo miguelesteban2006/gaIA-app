@@ -1,5 +1,3 @@
-Si ves barra, revisa /.well-known/assetlinks.json (200, package_name y SHA-256 correctos).
-
 [
   {
     "relation": ["delegate_permission/common.handle_all_urls"],
