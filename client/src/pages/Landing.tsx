@@ -1,48 +1,89 @@
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiJson } from "@/lib/queryClient";
 import { setAuthToken } from "@/lib/authUtils";
-import { AFTER_LOGIN_ROUTE } from "@/lib/apiConfig"; // <- para centralizar la ruta
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
+import { useLocation } from "wouter";
+
+const ELDERLY_LIST_ENDPOINT = "/api/elderly-users"; // ajusta si tu backend usa otro path
 
 export default function Landing() {
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
+  const [, setLocation] = useLocation();
 
-  // Limpiar cualquier token inválido al cargar la página de login
+  // Limpia tokens imposibles cuando entras en la pantalla
   useEffect(() => {
-    const KEY = "eldercompanion_token";
-    const token = localStorage.getItem(KEY);
-    if (token) {
+    const t = localStorage.getItem("eldercompanion_token");
+    if (t) {
       try {
-        const parts = token.split(".");
-        if (parts.length !== 3) localStorage.removeItem(KEY);
+        const parts = t.split(".");
+        if (parts.length !== 3) localStorage.removeItem("eldercompanion_token");
       } catch {
-        localStorage.removeItem(KEY);
+        localStorage.removeItem("eldercompanion_token");
       }
     }
   }, []);
-  
+
+  // --- Utilidad: tras login/registro, decide a dónde ir ---
+  async function redirectAfterAuth() {
+    try {
+      // Trae la lista de adultos. Sirve para saber a qué perfil entrar.
+      const data = await apiJson<any>("GET", `${ELDERLY_LIST_ENDPOINT}?limit=1`);
+
+      // intentamos múltiples formas comunes de respuesta
+      const list =
+        (Array.isArray(data) && data) ||
+        data?.items ||
+        data?.results ||
+        data?.elderlyUsers ||
+        [];
+
+      const first = Array.isArray(list) ? list[0] : undefined;
+      const id = first?.id ?? first?._id ?? first?.uuid;
+
+      if (id) {
+        // ir directo al primer perfil
+        setLocation(`/elderly-users/${id}`);
+      } else {
+        // no hay adultos: ve al panel general (lista)
+        setLocation("/");
+      }
+    } catch {
+      // si falla el fetch, al menos entra al panel general
+      setLocation("/");
+    }
+  }
+
+  // --- Mutación de login/registro ---
   const authMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (payload: any) => {
       const endpoint = isLogin ? "/api/login" : "/api/register";
-      const response = await apiRequest("POST", endpoint, data);
-      return response.json();
+      // usamos apiJson para que ya parsee y gestione errores
+      return apiJson<{ ok?: boolean; token?: string; error?: string }>(
+        "POST",
+        endpoint,
+        payload
+      );
     },
-    onSuccess: (data) => {
-      // 1) Guardar token
+    onSuccess: async (data) => {
+      if (!data?.token) {
+        toast({
+          title: "Error",
+          description: "Respuesta inválida del servidor (sin token)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // guardar token y redirigir a perfil o panel general
       setAuthToken(data.token);
 
-      // 2) Invalida/limpia cache para que el router vea el estado nuevo al remontar
-      queryClient.clear();
-
-      // 3) Notificación
       toast({
         title: "¡Bienvenido a GaIA!",
         description: isLogin
@@ -50,44 +91,48 @@ export default function Landing() {
           : "Tu cuenta ha sido creada exitosamente",
       });
 
-      // 4) Redirección 100% fiable al panel (Home) sin dejar rastro del login en el historial
-      //    Por defecto AFTER_LOGIN_ROUTE = "/". Si quieres otra (p.ej. "/home"), cámbiala en apiConfig o .env
-      setTimeout(() => {
-        window.location.replace(AFTER_LOGIN_ROUTE || "/");
-      }, 50);
+      await redirectAfterAuth();
     },
-    onError: (error: Error) => {
-      const msg = (error?.message || "").toUpperCase();
-      let description = "Error al procesar la solicitud";
-      if (msg.includes("409") || msg.includes("EMAIL_EXISTS")) {
-        description = "Ese correo ya está registrado.";
-      } else if (msg.includes("401") || msg.includes("INVALID_CREDENTIALS")) {
-        description = "Correo o contraseña incorrectos.";
-      } else if (msg.includes("400") || msg.includes("FIELDS_REQUIRED")) {
-        description = "Revisa los campos del formulario.";
-      } else if (msg.includes("TIMEOUT")) {
-        description = "El servidor tardó en responder. Inténtalo de nuevo.";
+    onError: (err: any) => {
+      const msg = String(err?.message || "");
+      let human = "Error al procesar la solicitud";
+
+      // mensajes más claros
+      if (msg.includes("INVALID_CREDENTIALS") || msg.includes("401")) {
+        human = "Credenciales inválidas";
+      } else if (msg.includes("USER_EXISTS") || msg.includes("already") || msg.includes("409")) {
+        human = "Ese email ya está registrado";
+      } else if (msg.includes("FIELDS_REQUIRED") || msg.includes("400")) {
+        human = "Faltan datos o hay datos inválidos";
+      } else if (msg.toLowerCase().includes("timeout")) {
+        human = "El servidor tardó demasiado en responder";
       }
-      toast({ title: "Error", description, variant: "destructive" });
+
+      toast({
+        title: "No se pudo completar",
+        description: human,
+        variant: "destructive",
+      });
     },
   });
 
+  // --- submit del formulario ---
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    
-    const data: any = {
-      email: formData.get("email"),
-      password: formData.get("password"),
+    const form = new FormData(e.currentTarget);
+
+    const payload: any = {
+      email: form.get("email"),
+      password: form.get("password"),
     };
 
     if (!isLogin) {
-      data.firstName = formData.get("firstName");
-      data.lastName = formData.get("lastName");
-      data.role = (formData.get("role") as string) || "family";
+      payload.firstName = form.get("firstName");
+      payload.lastName = form.get("lastName");
+      payload.role = form.get("role") || "family";
     }
 
-    authMutation.mutate(data);
+    authMutation.mutate(payload);
   };
 
   return (
@@ -111,29 +156,23 @@ export default function Landing() {
             Sistema inteligente de monitoreo y cuidado para adultos mayores. 
             Conectando familias, profesionales médicos y asistentes robóticos para un cuidado integral.
           </p>
-          
-          {/* Features Grid */}
+
+          {/* Features */}
           <div className="grid md:grid-cols-3 gap-8 mb-16 px-4 md:px-0">
             <div className="text-center">
               <Heart className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Cuidado Emocional</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Análisis de sentimientos y estado de ánimo en tiempo real
-              </p>
+              <p className="text-gray-600 dark:text-gray-400">Análisis de sentimientos y estado de ánimo en tiempo real</p>
             </div>
             <div className="text-center">
               <Activity className="h-12 w-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Monitoreo de Salud</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Seguimiento continuo de indicadores vitales y bienestar
-              </p>
+              <p className="text-gray-600 dark:text-gray-400">Seguimiento continuo de indicadores vitales y bienestar</p>
             </div>
             <div className="text-center">
               <Users className="h-12 w-12 text-blue-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Red de Apoyo</h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Conecta familias, médicos y cuidadores en una sola plataforma
-              </p>
+              <p className="text-gray-600 dark:text-gray-400">Conecta familias, médicos y cuidadores en una sola plataforma</p>
             </div>
           </div>
         </div>
@@ -146,9 +185,7 @@ export default function Landing() {
                 {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
               </CardTitle>
               <CardDescription className="text-center">
-                {isLogin 
-                  ? "Accede a tu panel de monitoreo GaIA" 
-                  : "Únete a la red de cuidado inteligente"}
+                {isLogin ? "Accede a tu panel de monitoreo GaIA" : "Únete a la red de cuidado inteligente"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -180,40 +217,36 @@ export default function Landing() {
                     </div>
                   </>
                 )}
-                
+
                 <div>
                   <Label htmlFor="email">Correo Electrónico</Label>
                   <Input id="email" name="email" type="email" required placeholder="tu@email.com" />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="password">Contraseña</Label>
                   <Input id="password" name="password" type="password" required placeholder="••••••••" />
                 </div>
 
-                <Button type="submit" className="w-full btn-mobile" disabled={authMutation.isPending}>
-                  {authMutation.isPending 
-                    ? "Procesando..." 
-                    : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
+                <Button type="submit" className="w-full" disabled={authMutation.isPending}>
+                  {authMutation.isPending ? "Procesando..." : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
                 </Button>
               </form>
-              
+
               <div className="mt-4 text-center">
                 <button
                   type="button"
-                  onClick={() => setIsLogin((v) => !v)}
+                  onClick={() => setIsLogin(!isLogin)}
                   className="text-blue-600 hover:underline"
                 >
-                  {isLogin 
-                    ? "¿No tienes cuenta? Regístrate" 
-                    : "¿Ya tienes cuenta? Inicia sesión"}
+                  {isLogin ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
                 </button>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Benefits Section */}
+        {/* Benefits */}
         <div className="mt-16 grid md:grid-cols-2 gap-8">
           <Card>
             <CardHeader>
@@ -229,7 +262,7 @@ export default function Landing() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
