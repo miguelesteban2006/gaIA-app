@@ -1,28 +1,33 @@
-import { useQuery } from "@tanstack/react-query";
-import { getAuthToken, clearAuthData, isTokenValid } from "@/lib/authUtils";
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
+
+const TOKEN_KEY = "eldercompanion_token";
 
 export function useAuth() {
-  const token = getAuthToken();
-  const isValidToken = token ? isTokenValid(token) : false;
-
-  const { data: user, isLoading, error } = useQuery({
-    queryKey: ["/api/auth/user"],
-    retry: false,
-    enabled: isValidToken, // solo consulta si el token tiene pinta válida
+  // 1) Arranca en true si ya hay token en localStorage para que el router
+  //    pinte Home inmediatamente tras el reload.
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return !!localStorage.getItem(TOKEN_KEY);
   });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Si el backend dice 401 o hay token inválido, limpia sesión
-  if (token && (!isValidToken || (error && (error as any)?.message?.includes?.("401")))) {
-    clearAuthData();
-    return { user: null, isLoading: false, isAuthenticated: false, logout: clearAuthData };
-  }
+  useEffect(() => {
+    let cancelled = false;
 
-  const logout = () => clearAuthData();
+    (async () => {
+      try {
+        // 2) Valida con el backend (con credenciales y Authorization si hay token)
+        const res = await apiRequest("GET", "/api/auth/user");
+        if (!cancelled) setIsAuthenticated(res.ok);
+      } catch {
+        if (!cancelled) setIsAuthenticated(false);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
 
-  return {
-    user,
-    isLoading: isValidToken ? isLoading : false,
-    isAuthenticated: !!user && isValidToken && !error,
-    logout,
-  };
+    return () => { cancelled = true; };
+  }, []);
+
+  return { isAuthenticated, isLoading };
 }

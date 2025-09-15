@@ -1,97 +1,85 @@
-// client/src/lib/queryClient.ts
-
 import { QueryClient } from "@tanstack/react-query";
-import { getApiBaseUrl } from "./apiConfig";
+import { getApiBaseUrl, API_CONFIG } from "./apiConfig";
 
+export const TOKEN_KEY = "eldercompanion_token";
+
+/**
+ * React Query client (default config).
+ */
+export const queryClient = new QueryClient();
+
+/**
+ * Devuelve el header Authorization si hay token guardado.
+ */
+export function getAuthHeader(): Record<string, string> {
+  const token = localStorage.getItem(TOKEN_KEY);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+/**
+ * Lanza error si la respuesta no es OK. Intenta incluir cuerpo textual para depurar.
+ */
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    let text = "";
+    try {
+      text = await res.text();
+    } catch {
+      // ignore
+    }
+    const message = `${res.status}: ${text || res.statusText}`;
+    throw new Error(message);
   }
+  return res;
 }
 
+/**
+ * Wrapper de fetch con:
+ * - baseUrl desde apiConfig
+ * - credentials: 'include' (cookies de sesión)
+ * - Authorization: Bearer <token> si existe
+ * - Content-Type: application/json
+ * - timeout configurable (API_CONFIG.timeout)
+ */
 export async function apiRequest(
-  method: string,
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
   url: string,
-  data?: unknown
-): Promise<Response> {
-  const token = localStorage.getItem("eldercompanion_token");
-  
-  // Build the complete URL using centralized API configuration
-  const baseUrl = getApiBaseUrl();
-  const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : url;
-  
-  // Detector de conectividad mejorado
-  const isOnline = navigator.onLine;
-  if (!isOnline && !url.includes('/api/auth/user')) {
-    // Mostrar indicador de offline para requests no críticos
-    console.log('📱 Modo offline - usando datos en cache');
-  }
-  
+  body?: unknown,
+  init?: RequestInit
+) {
+  const base = getApiBaseUrl();
+
   const headers: Record<string, string> = {
-    'Accept': 'application/json',
+    "Content-Type": "application/json",
+    ...getAuthHeader(),
+    ...(init?.headers as Record<string, string> | undefined),
   };
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
+  const res = await fetch(base + url, {
+    method,
+    headers,
+    credentials: "include",
+    body: body != null ? JSON.stringify(body) : undefined,
+    signal:
+      (init?.signal as AbortSignal | undefined) ??
+      (API_CONFIG.timeout ? AbortSignal.timeout(API_CONFIG.timeout) : undefined),
+    ...init,
+  });
 
-  let body: string | FormData | undefined;
-  if (data) {
-    if (data instanceof FormData) {
-      body = data;
-    } else {
-      headers["Content-Type"] = "application/json";
-      body = JSON.stringify(data);
-    }
-  }
-
-  // Improved error handling for network issues
-  try {
-    const res = await fetch(fullUrl, {
-      method,
-      headers,
-      body,
-      credentials: 'same-origin',
-      // Add timeout and better error handling
-      signal: AbortSignal.timeout(15000), // 15 second timeout
-    });
-
-    await throwIfResNotOk(res);
-    return res;
-  } catch (error) {
-    console.error('API Request failed:', { method, url: fullUrl, error });
-    
-    // Mensaje más claro para el usuario sobre problemas de conexión
-    if (error instanceof Error) {
-      if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
-        throw new Error('La aplicación necesita conexión al servidor. Verifica que el servidor esté ejecutándose.');
-      }
-      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-        throw new Error('Sin conexión al servidor. Para usar la aplicación instalada, debe estar desplegada en producción.');
-      }
-    }
-    
-    throw error;
-  }
+  return throwIfResNotOk(res);
 }
 
-// Configurar el QueryClient con fetcher por defecto
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: (failureCount, error: any) => {
-        // Don't retry on 4xx errors
-        if (error?.message?.includes('4')) {
-          return false;
-        }
-        return failureCount < 2;
-      },
-      queryFn: async ({ queryKey }) => {
-        const response = await apiRequest("GET", queryKey[0] as string);
-        return response.json();
-      },
-    },
-  },
-});
+/**
+ * Igual que apiRequest pero te devuelve el JSON ya parseado.
+ * Si la respuesta es 204/empty, devuelve {}.
+ */
+export async function apiJson<T = any>(
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
+  url: string,
+  body?: unknown,
+  init?: RequestInit
+): Promise<T> {
+  const res = await apiRequest(method, url, body, init);
+  const text = await res.text();
+  return text ? (JSON.parse(text) as T) : ({} as T);
+}
