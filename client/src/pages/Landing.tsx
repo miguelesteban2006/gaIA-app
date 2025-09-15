@@ -8,51 +8,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
-import { useLocation } from "wouter";
 
 const TOKEN_KEY = "eldercompanion_token";
 
-// candidatos de endpoints para listar perfiles (probamos 1º disponible)
-const ELDERLY_LIST_CANDIDATES = [
-  "/api/elderly-users?limit=1",
-  "/api/elderly?limit=1",
-  "/api/patients?limit=1",
-  "/api/residents?limit=1",
-  "/api/seniors?limit=1",
-];
+// Intenta sacar un id de distintas propiedades típicas del response
+function takeElderlyIdFromResponse(payload: any): string | null {
+  if (!payload) return null;
+  const direct =
+    payload.firstElderlyId ||
+    payload.elderlyId ||
+    payload.profileId ||
+    payload.defaultElderlyId ||
+    payload.defaultProfileId;
+  if (direct) return String(direct);
 
-// extrae un id de un payload de “lista”
-function pickFirstIdFromListPayload(payload: any) {
-  const list =
-    (Array.isArray(payload) && payload) ||
-    payload?.items ||
-    payload?.results ||
-    payload?.elderlyUsers ||
-    payload?.data ||
-    [];
-  const first = Array.isArray(list) ? list[0] : undefined;
-  return first?.id ?? first?._id ?? first?.uuid ?? null;
-}
-
-// intenta llamar al primer endpoint que exista sin sacar errores por consola
-async function fetchFirstElderlyIdSilently(): Promise<string | null> {
-  for (const url of ELDERLY_LIST_CANDIDATES) {
-    try {
-      const res = await fetch(url, {
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ""}`,
-        },
-      });
-      if (!res.ok) continue;
-      const text = await res.text();
-      const json = text ? JSON.parse(text) : {};
-      const id = pickFirstIdFromListPayload(json);
-      if (id) return String(id);
-    } catch {
-      /* ignoramos y probamos el siguiente */
-    }
+  const u = payload.user || payload.data?.user || null;
+  if (u) {
+    const fromUser =
+      u.firstElderlyId || u.elderlyId || u.profileId || u.defaultElderlyId || u.defaultProfileId;
+    if (fromUser) return String(fromUser);
   }
   return null;
 }
@@ -60,9 +34,8 @@ async function fetchFirstElderlyIdSilently(): Promise<string | null> {
 export default function Landing() {
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
-  const [, setLocation] = useLocation();
 
-  // Limpia tokens inválidos al cargar
+  // Limpiar tokens inválidos al cargar
   useEffect(() => {
     const t = localStorage.getItem(TOKEN_KEY);
     if (t) {
@@ -88,7 +61,6 @@ export default function Landing() {
         ok?: boolean;
         token?: string;
         error?: string;
-        // si el backend lo incluye, lo aprovechamos:
         firstElderlyId?: string;
         elderlyId?: string;
         profileId?: string;
@@ -97,18 +69,10 @@ export default function Landing() {
     },
     onSuccess: async (data) => {
       if (data?.token) setAuthToken(data.token);
+
+      // Invalida caché y notifica cambio de auth al Router
       queryClient.clear();
-
-      // 1) Si el backend ya devuelve el id, úsalo
-      const idFromResponse =
-        data.firstElderlyId || data.elderlyId || data.profileId || null;
-
-      let targetId: string | null = idFromResponse ?? null;
-
-      // 2) Si no viene, intenta obtener el primer perfil sin log de errores
-      if (!targetId) {
-        targetId = await fetchFirstElderlyIdSilently();
-      }
+      window.dispatchEvent(new Event("auth-changed"));
 
       toast({
         title: "¡Bienvenido a GaIA!",
@@ -117,12 +81,12 @@ export default function Landing() {
           : "Tu cuenta ha sido creada exitosamente",
       });
 
-      if (targetId) {
-        setLocation(`/elderly-users/${targetId}`);
-      } else {
-        // si no hay perfiles todavía, vamos al Home
-        setLocation("/");
-      }
+      // Redirección inmediata
+      const targetId = takeElderlyIdFromResponse(data);
+      const url = targetId ? `/elderly-users/${targetId}` : "/";
+
+      // Redirect duro para forzar remonte del árbol con el token ya presente
+      window.location.replace(url);
     },
     onError: (error: Error) => {
       const msg = (error?.message || "").toUpperCase();
