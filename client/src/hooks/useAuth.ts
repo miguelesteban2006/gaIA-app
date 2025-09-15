@@ -1,33 +1,57 @@
 import { useEffect, useState } from "react";
+import { TOKEN_KEY } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
 
-const TOKEN_KEY = "eldercompanion_token";
+type User = {
+  id?: string;
+  email?: string;
+  [k: string]: any;
+};
 
 export function useAuth() {
-  // 1) Arranca en true si ya hay token en localStorage para que el router
-  //    pinte Home inmediatamente tras el reload.
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    return !!localStorage.getItem(TOKEN_KEY);
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    // 1) Considera autenticado si hay token (sin bloquear por 404)
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token && token.split(".").length === 3) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
 
+    // 2) Intenta cargar datos del usuario si existe algún endpoint — pero NO bloquea
+    //    ni cambia isAuthenticated a false si falla.
     (async () => {
       try {
-        // 2) Valida con el backend (con credenciales y Authorization si hay token)
-        const res = await apiRequest("GET", "/api/auth/user");
-        if (!cancelled) setIsAuthenticated(res.ok);
-      } catch {
-        if (!cancelled) setIsAuthenticated(false);
+        // si tu backend expone alguno de estos, úsalo; si da 404, lo ignoramos.
+        const candidates = [
+          "/api/auth/user",
+          "/api/auth/me",
+          "/api/me",
+          "/api/users/me",
+          "/api/auth/profile",
+        ];
+        for (const url of candidates) {
+          try {
+            const res = await apiRequest("GET", url);
+            if (res.ok) {
+              const data = await res.json();
+              // adapta a tu forma: user, data.user, etc.
+              setUser((data?.user ?? data) || null);
+              break;
+            }
+          } catch {
+            /* ignorar y seguir probando */
+          }
+        }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        setIsLoading(false);
       }
     })();
-
-    return () => { cancelled = true; };
   }, []);
 
-  return { isAuthenticated, isLoading };
+  return { isAuthenticated, isLoading, user };
 }

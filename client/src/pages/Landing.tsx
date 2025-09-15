@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { apiJson, apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { setAuthToken } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,110 +10,44 @@ import { useToast } from "@/hooks/use-toast";
 import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
 import { useLocation } from "wouter";
 
-// Candidatos por si tu backend usa otros nombres de rutas
-const AUTH_USER_CANDIDATES = [
-  "/api/auth/user",
-  "/api/auth/me",
-  "/api/me",
-  "/api/users/me",
-  "/api/auth/profile",
-];
-
-const ELDERLY_LIST_CANDIDATES = [
-  "/api/elderly-users?limit=1",
-  "/api/elderly?limit=1",
-  "/api/patients?limit=1",
-  "/api/residents?limit=1",
-  "/api/seniors?limit=1",
-];
-
-// ÚNICA implementación (sin duplicados)
-async function probeFirstOkEndpoint(
-  candidates: string[]
-): Promise<{ url: string; json: any } | null> {
-  for (const url of candidates) {
-    try {
-      const res = await apiRequest("GET", url);
-      const text = await res.text();
-      const json = text ? JSON.parse(text) : {};
-      return { url, json };
-    } catch {
-      // ignoramos errores y probamos el siguiente
-      continue;
-    }
-  }
-  return null;
-}
-
-function pickFirstIdFromListPayload(payload: any) {
-  const list =
-    (Array.isArray(payload) && payload) ||
-    payload?.items ||
-    payload?.results ||
-    payload?.elderlyUsers ||
-    payload?.data ||
-    [];
-
-  const first = Array.isArray(list) ? list[0] : undefined;
-  return first?.id ?? first?._id ?? first?.uuid ?? null;
-}
-
 export default function Landing() {
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [, setLocation] = useLocation();
 
-  // Limpia tokens con formato imposible al cargar
+  // Limpiar cualquier token inválido al cargar la página de login
   useEffect(() => {
-    const KEY = "eldercompanion_token";
-    const t = localStorage.getItem(KEY);
-    if (t) {
+    const token = localStorage.getItem("eldercompanion_token");
+    if (token) {
       try {
-        const parts = t.split(".");
-        if (parts.length !== 3) localStorage.removeItem(KEY);
+        const parts = token.split(".");
+        if (parts.length !== 3) {
+          localStorage.removeItem("eldercompanion_token");
+        }
       } catch {
-        localStorage.removeItem(KEY);
+        localStorage.removeItem("eldercompanion_token");
       }
     }
   }, []);
 
-  // Decide a dónde ir: primer perfil si existe, si no al panel general
-  async function redirectAfterAuth() {
-    const probe = await probeFirstOkEndpoint(ELDERLY_LIST_CANDIDATES);
-
-    if (probe?.json) {
-      const id = pickFirstIdFromListPayload(probe.json);
-      if (id) {
-        setLocation(`/elderly-users/${id}`);
-        return;
-      }
-    }
-    // Sin perfiles o sin endpoint → panel general
-    setLocation("/");
-  }
-
   const authMutation = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (data: any) => {
       const endpoint = isLogin ? "/api/login" : "/api/register";
-      return apiJson<{ ok?: boolean; token?: string; error?: string }>(
-        "POST",
-        endpoint,
-        payload
-      );
+      const res = await apiRequest("POST", endpoint, data);
+      const json = await res.json();
+      // si el backend devuelve error en el body con 200, forzamos throw para onError
+      if (!res.ok || (json && json.ok === false)) {
+        const code = json?.error || res.statusText || "REQUEST_FAILED";
+        throw new Error(code);
+      }
+      return json;
     },
-    onSuccess: async (data) => {
-      // Guarda token si viene (si no, puede ser sesión por cookie)
+    onSuccess: (data: any) => {
+      // Guarda token si viene (si no, puede que uses cookie de sesión)
       if (data?.token) setAuthToken(data.token);
 
-      // Limpia cache de React Query
+      // Limpia la caché para evitar estados inconsistentes
       queryClient.clear();
-
-      // Intenta validar sesión (autodetección de endpoint)
-      try {
-        await probeFirstOkEndpoint(AUTH_USER_CANDIDATES);
-      } catch {
-        // ignoramos error de validación y seguimos
-      }
 
       toast({
         title: "¡Bienvenido a GaIA!",
@@ -122,27 +56,28 @@ export default function Landing() {
           : "Tu cuenta ha sido creada exitosamente",
       });
 
-      await redirectAfterAuth();
+      // Redirigir al Home: desde ahí tu Router muestra el panel
+      setLocation("/");
     },
-    onError: (err: any) => {
-      const msg = String(err?.message || "").toUpperCase();
-      let human = "Error al procesar la solicitud";
+    onError: (error: Error) => {
+      const msg = (error?.message || "").toUpperCase();
+      let description = "Error al procesar la solicitud";
 
       if (msg.includes("INVALID_CREDENTIALS") || msg.includes("401")) {
-        human = "Credenciales inválidas";
+        description = "Credenciales inválidas";
       } else if (msg.includes("USER_EXISTS") || msg.includes("ALREADY") || msg.includes("409")) {
-        human = "Ese email ya está registrado";
+        description = "Ese email ya está registrado";
       } else if (msg.includes("FIELDS_REQUIRED") || msg.includes("400")) {
-        human = "Faltan datos o hay datos inválidos";
+        description = "Faltan datos o hay datos inválidos";
       } else if (msg.includes("TIMEOUT")) {
-        human = "El servidor tardó demasiado en responder";
+        description = "El servidor tardó demasiado en responder";
       } else if (msg.includes("NOT FOUND") || msg.includes("404")) {
-        human = "Ruta no encontrada en el servidor";
+        description = "Ruta no encontrada en el servidor";
       }
 
       toast({
         title: "No se pudo completar",
-        description: human,
+        description,
         variant: "destructive",
       });
     },
@@ -150,17 +85,17 @@ export default function Landing() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const form = new FormData(e.currentTarget);
+    const formData = new FormData(e.currentTarget);
 
     const payload: any = {
-      email: form.get("email"),
-      password: form.get("password"),
+      email: formData.get("email"),
+      password: formData.get("password"),
     };
 
     if (!isLogin) {
-      payload.firstName = form.get("firstName");
-      payload.lastName = form.get("lastName");
-      payload.role = form.get("role") || "family";
+      payload.firstName = formData.get("firstName");
+      payload.lastName = formData.get("lastName");
+      payload.role = formData.get("role") || "family";
     }
 
     authMutation.mutate(payload);
@@ -184,26 +119,32 @@ export default function Landing() {
             </h1>
           </div>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            Sistema inteligente de monitoreo y cuidado para adultos mayores. 
+            Sistema inteligente de monitoreo y cuidado para adultos mayores.
             Conectando familias, profesionales médicos y asistentes robóticos para un cuidado integral.
           </p>
 
-          {/* Features */}
+          {/* Features Grid */}
           <div className="grid md:grid-cols-3 gap-8 mb-16 px-4 md:px-0">
             <div className="text-center">
               <Heart className="h-12 w-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Cuidado Emocional</h3>
-              <p className="text-gray-600 dark:text-gray-400">Análisis de sentimientos y estado de ánimo en tiempo real</p>
+              <p className="text-gray-600 dark:text-gray-400">
+                Análisis de sentimientos y estado de ánimo en tiempo real
+              </p>
             </div>
             <div className="text-center">
               <Activity className="h-12 w-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Monitoreo de Salud</h3>
-              <p className="text-gray-600 dark:text-gray-400">Seguimiento continuo de indicadores vitales y bienestar</p>
+              <p className="text-gray-600 dark:text-gray-400">
+                Seguimiento continuo de indicadores vitales y bienestar
+              </p>
             </div>
             <div className="text-center">
               <Users className="h-12 w-12 text-blue-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Red de Apoyo</h3>
-              <p className="text-gray-600 dark:text-gray-400">Conecta familias, médicos y cuidadores en una sola plataforma</p>
+              <p className="text-gray-600 dark:text-gray-400">
+                Conecta familias, médicos y cuidadores en una sola plataforma
+              </p>
             </div>
           </div>
         </div>
@@ -216,7 +157,9 @@ export default function Landing() {
                 {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
               </CardTitle>
               <CardDescription className="text-center">
-                {isLogin ? "Accede a tu panel de monitoreo GaIA" : "Únete a la red de cuidado inteligente"}
+                {isLogin
+                  ? "Accede a tu panel de monitoreo GaIA"
+                  : "Únete a la red de cuidado inteligente"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -226,11 +169,23 @@ export default function Landing() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName">Nombre</Label>
-                        <Input id="firstName" name="firstName" type="text" required placeholder="Nombre" />
+                        <Input
+                          id="firstName"
+                          name="firstName"
+                          type="text"
+                          required
+                          placeholder="Nombre"
+                        />
                       </div>
                       <div>
                         <Label htmlFor="lastName">Apellido</Label>
-                        <Input id="lastName" name="lastName" type="text" required placeholder="Apellido" />
+                        <Input
+                          id="lastName"
+                          name="lastName"
+                          type="text"
+                          required
+                          placeholder="Apellido"
+                        />
                       </div>
                     </div>
                     <div>
@@ -251,16 +206,34 @@ export default function Landing() {
 
                 <div>
                   <Label htmlFor="email">Correo Electrónico</Label>
-                  <Input id="email" name="email" type="email" required placeholder="tu@email.com" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="tu@email.com"
+                  />
                 </div>
 
                 <div>
                   <Label htmlFor="password">Contraseña</Label>
-                  <Input id="password" name="password" type="password" required placeholder="••••••••" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                  />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={authMutation.isPending}>
-                  {authMutation.isPending ? "Procesando..." : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
+                <Button
+                  type="submit"
+                  className="w-full btn-mobile"
+                  disabled={authMutation.isPending}
+                >
+                  {authMutation.isPending
+                    ? "Procesando..."
+                    : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
                 </Button>
               </form>
 
@@ -270,14 +243,16 @@ export default function Landing() {
                   onClick={() => setIsLogin(!isLogin)}
                   className="text-blue-600 hover:underline"
                 >
-                  {isLogin ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
+                  {isLogin
+                    ? "¿No tienes cuenta? Regístrate"
+                    : "¿Ya tienes cuenta? Inicia sesión"}
                 </button>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Benefits */}
+        {/* Benefits Section */}
         <div className="mt-16 grid md:grid-cols-2 gap-8">
           <Card>
             <CardHeader>
@@ -288,7 +263,7 @@ export default function Landing() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400">
-                Algoritmos de IA especializados en análisis de comportamiento y detección temprana 
+                Algoritmos de IA especializados en análisis de comportamiento y detección temprana
                 de cambios en el estado de salud y bienestar emocional.
               </p>
             </CardContent>
@@ -303,7 +278,7 @@ export default function Landing() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400">
-                Todos los datos están protegidos con los más altos estándares de seguridad. 
+                Todos los datos están protegidos con los más altos estándares de seguridad.
                 Control total sobre quién puede acceder a la información del adulto mayor.
               </p>
             </CardContent>
