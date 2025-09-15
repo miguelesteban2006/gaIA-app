@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { setAuthToken } from "@/lib/authUtils";
+import { AFTER_LOGIN_ROUTE } from "@/lib/apiConfig"; // igual que en el proyecto antiguo
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,12 +15,14 @@ const TOKEN_KEY = "eldercompanion_token";
 // Intenta sacar un id de distintas propiedades típicas del response
 function takeElderlyIdFromResponse(payload: any): string | null {
   if (!payload) return null;
+
   const direct =
     payload.firstElderlyId ||
     payload.elderlyId ||
     payload.profileId ||
     payload.defaultElderlyId ||
     payload.defaultProfileId;
+
   if (direct) return String(direct);
 
   const u = payload.user || payload.data?.user || null;
@@ -35,13 +38,15 @@ export default function Landing() {
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
 
-  // Limpiar tokens inválidos al cargar
+  // Limpiar cualquier token inválido al cargar la página de login (igual que en tu versión antigua)
   useEffect(() => {
-    const t = localStorage.getItem(TOKEN_KEY);
-    if (t) {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
       try {
-        const parts = t.split(".");
-        if (parts.length !== 3) localStorage.removeItem(TOKEN_KEY);
+        const parts = token.split(".");
+        if (parts.length !== 3) {
+          localStorage.removeItem(TOKEN_KEY);
+        }
       } catch {
         localStorage.removeItem(TOKEN_KEY);
       }
@@ -61,19 +66,21 @@ export default function Landing() {
         ok?: boolean;
         token?: string;
         error?: string;
+        // opcionales, si el backend los manda
         firstElderlyId?: string;
         elderlyId?: string;
         profileId?: string;
         user?: any;
       };
     },
-    onSuccess: async (data) => {
-      if (data?.token) setAuthToken(data.token);
+    onSuccess: (data) => {
+      // Guarda token si llega (si usas cookies, setAuthToken también marca sesión)
+      setAuthToken(data.token);
 
-      // Invalida caché y notifica cambio de auth al Router
+      // Limpia cache de react-query
       queryClient.clear();
-      window.dispatchEvent(new Event("auth-changed"));
 
+      // Mensaje UX
       toast({
         title: "¡Bienvenido a GaIA!",
         description: isLogin
@@ -81,12 +88,14 @@ export default function Landing() {
           : "Tu cuenta ha sido creada exitosamente",
       });
 
-      // Redirección inmediata
-      const targetId = takeElderlyIdFromResponse(data);
-      const url = targetId ? `/elderly-users/${targetId}` : "/";
+      // Decide a dónde ir:
+      // 1) Si viene un id de perfil/paciente en el response, vamos a /elderly-users/:id
+      // 2) Si no, usamos la ruta centralizada (por defecto "/") como en el proyecto antiguo
+      const maybeId = takeElderlyIdFromResponse(data);
+      const target = maybeId ? `/elderly-users/${maybeId}` : (AFTER_LOGIN_ROUTE || "/");
 
-      // Redirect duro para forzar remonte del árbol con el token ya presente
-      window.location.replace(url);
+      // Redirect duro para que el Router remonte con el estado de auth ya actualizado
+      window.location.replace(target);
     },
     onError: (error: Error) => {
       const msg = (error?.message || "").toUpperCase();
@@ -116,18 +125,18 @@ export default function Landing() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
-    const payload: any = {
+    const data: any = {
       email: formData.get("email"),
       password: formData.get("password"),
     };
 
     if (!isLogin) {
-      payload.firstName = formData.get("firstName");
-      payload.lastName = formData.get("lastName");
-      payload.role = formData.get("role") || "family";
+      data.firstName = formData.get("firstName");
+      data.lastName = formData.get("lastName");
+      data.role = formData.get("role") || "family";
     }
 
-    authMutation.mutate(payload);
+    authMutation.mutate(data);
   };
 
   return (
@@ -151,7 +160,7 @@ export default function Landing() {
             Sistema inteligente de monitoreo y cuidado para adultos mayores. 
             Conectando familias, profesionales médicos y asistentes robóticos para un cuidado integral.
           </p>
-
+          
           {/* Features Grid */}
           <div className="grid md:grid-cols-3 gap-8 mb-16 px-4 md:px-0">
             <div className="text-center">
@@ -198,11 +207,23 @@ export default function Landing() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName">Nombre</Label>
-                        <Input id="firstName" name="firstName" type="text" required placeholder="Nombre" />
+                        <Input
+                          id="firstName"
+                          name="firstName"
+                          type="text"
+                          required
+                          placeholder="Nombre"
+                        />
                       </div>
                       <div>
                         <Label htmlFor="lastName">Apellido</Label>
-                        <Input id="lastName" name="lastName" type="text" required placeholder="Apellido" />
+                        <Input
+                          id="lastName"
+                          name="lastName"
+                          type="text"
+                          required
+                          placeholder="Apellido"
+                        />
                       </div>
                     </div>
                     <div>
@@ -220,31 +241,49 @@ export default function Landing() {
                     </div>
                   </>
                 )}
-
+                
                 <div>
                   <Label htmlFor="email">Correo Electrónico</Label>
-                  <Input id="email" name="email" type="email" required placeholder="tu@email.com" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    placeholder="tu@email.com"
+                  />
                 </div>
-
+                
                 <div>
                   <Label htmlFor="password">Contraseña</Label>
-                  <Input id="password" name="password" type="password" required placeholder="••••••••" />
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                  />
                 </div>
 
-                <Button type="submit" className="w-full btn-mobile" disabled={authMutation.isPending}>
-                  {authMutation.isPending
-                    ? "Procesando..."
+                <Button 
+                  type="submit" 
+                  className="w-full btn-mobile"
+                  disabled={authMutation.isPending}
+                >
+                  {authMutation.isPending 
+                    ? "Procesando..." 
                     : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
                 </Button>
               </form>
-
+              
               <div className="mt-4 text-center">
                 <button
                   type="button"
                   onClick={() => setIsLogin(!isLogin)}
                   className="text-blue-600 hover:underline"
                 >
-                  {isLogin ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
+                  {isLogin 
+                    ? "¿No tienes cuenta? Regístrate" 
+                    : "¿Ya tienes cuenta? Inicia sesión"}
                 </button>
               </div>
             </CardContent>
