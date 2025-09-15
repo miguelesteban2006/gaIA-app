@@ -10,14 +10,64 @@ import { useToast } from "@/hooks/use-toast";
 import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
 import { useLocation } from "wouter";
 
-const ELDERLY_LIST_ENDPOINT = "/api/elderly-users"; // ajusta si tu backend usa otro path
+// Candidatos de endpoints (si tu backend tiene otros, añade aquí)
+const AUTH_USER_CANDIDATES = [
+  "/api/auth/user",
+  "/api/auth/me",
+  "/api/me",
+  "/api/users/me",
+  "/api/auth/profile",
+];
+
+const ELDERLY_LIST_CANDIDATES = [
+  "/api/elderly-users?limit=1",
+  "/api/elderly?limit=1",
+  "/api/patients?limit=1",
+  "/api/residents?limit=1",
+  "/api/seniors?limit=1",
+];
+
+async function probeFirstOkEndpoint(candidates: string) {
+  // overload signature guard
+  return null as never;
+}
+
+async function probeFirstOkEndpoint(
+  candidates: string[]
+): Promise<{ url: string; json: any } | null> {
+  for (const url of candidates) {
+    try {
+      const res = await apiRequest("GET", url);
+      const text = await res.text();
+      const json = text ? JSON.parse(text) : {};
+      return { url, json };
+    } catch (e: any) {
+      // ignoramos 404/401/etc. y probamos el siguiente
+      continue;
+    }
+  }
+  return null;
+}
+
+function pickFirstIdFromListPayload(payload: any) {
+  const list =
+    (Array.isArray(payload) && payload) ||
+    payload?.items ||
+    payload?.results ||
+    payload?.elderlyUsers ||
+    payload?.data ||
+    [];
+
+  const first = Array.isArray(list) ? list[0] : undefined;
+  return first?.id ?? first?._id ?? first?.uuid ?? null;
+}
 
 export default function Landing() {
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [, setLocation] = useLocation();
 
-  // Limpia tokens imposibles cuando entras en la pantalla
+  // Limpia tokens con formato inválido al cargar
   useEffect(() => {
     const KEY = "eldercompanion_token";
     const t = localStorage.getItem(KEY);
@@ -31,28 +81,20 @@ export default function Landing() {
     }
   }, []);
 
-  // Tras login/registro, decide a dónde ir (primer perfil o panel general)
+  // Decide a dónde ir: primer perfil si existe, si no al panel general
   async function redirectAfterAuth() {
-    try {
-      const data = await apiJson<any>("GET", `${ELDERLY_LIST_ENDPOINT}?limit=1`);
-      const list =
-        (Array.isArray(data) && data) ||
-        data?.items ||
-        data?.results ||
-        data?.elderlyUsers ||
-        [];
+    // Primero probamos la lista de adultos con autodetección
+    const probe = await probeFirstOkEndpoint(ELDERLY_LIST_CANDIDATES);
 
-      const first = Array.isArray(list) ? list[0] : undefined;
-      const id = first?.id ?? first?._id ?? first?.uuid;
-
+    if (probe?.json) {
+      const id = pickFirstIdFromListPayload(probe.json);
       if (id) {
         setLocation(`/elderly-users/${id}`);
-      } else {
-        setLocation("/"); // no hay adultos -> panel general
+        return;
       }
-    } catch {
-      setLocation("/"); // si falla, al menos que entre al panel general
     }
+    // Si no hay perfiles o no encontramos endpoint, vamos al panel general
+    setLocation("/");
   }
 
   // Mutación de login/registro con soporte "token o cookie"
@@ -66,20 +108,17 @@ export default function Landing() {
       );
     },
     onSuccess: async (data) => {
-      // Si devuelve token, lo guardamos
-      if (data?.token) {
-        setAuthToken(data.token);
-      }
+      // Guarda token si viene en la respuesta (si no, puede ser sesión por cookie)
+      if (data?.token) setAuthToken(data.token);
 
-      // Limpiamos cache para evitar estados obsoletos
+      // Limpia caché de React Query
       queryClient.clear();
 
-      // Intentamos validar sesión vía cookie (o bearer si hay token)
+      // Valida sesión (autodetectando endpoint de "usuario actual")
       try {
-        await apiRequest("GET", "/api/auth/user");
+        await probeFirstOkEndpoint(AUTH_USER_CANDIDATES);
       } catch {
-        // Si falla la validación, avisamos, pero seguimos con la redirección
-        // porque puede ser un falso negativo temporal.
+        // si falla, seguimos igualmente (puede ser cookie aún sin validar)
       }
 
       toast({
@@ -89,7 +128,6 @@ export default function Landing() {
           : "Tu cuenta ha sido creada exitosamente",
       });
 
-      // Ir al primer perfil o al panel general
       await redirectAfterAuth();
     },
     onError: (err: any) => {
@@ -104,6 +142,8 @@ export default function Landing() {
         human = "Faltan datos o hay datos inválidos";
       } else if (msg.includes("TIMEOUT")) {
         human = "El servidor tardó demasiado en responder";
+      } else if (msg.includes("NOT FOUND") || msg.includes("404")) {
+        human = "Ruta no encontrada en el servidor";
       }
 
       toast({
