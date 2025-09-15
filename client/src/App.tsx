@@ -10,6 +10,7 @@ import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
 import ElderlyUserProfile from "@/pages/ElderlyUserProfile";
 import { Bot } from "lucide-react";
+import { ClientErrorBoundary } from "@/components/ClientErrorBoundary";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -27,10 +28,10 @@ function Router() {
 
   return (
     <Switch>
-      {/* IMPORTANTE: esta ruta va antes para no quedar eclipsada por "/" */}
+      {/* Esta ruta va primero para no ser eclipsada por "/" */}
       <Route path="/elderly-users/:id" component={ElderlyUserProfile} />
 
-      {/* En "/" decidimos qué mostrar según auth en tiempo real */}
+      {/* En "/" decidimos Landing o Home según auth */}
       <Route path="/">
         {isAuthenticated ? <Home /> : <Landing />}
       </Route>
@@ -46,7 +47,9 @@ export default function App() {
       <TooltipProvider>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
           <NetworkStatus />
-          <Router />
+          <ClientErrorBoundary>
+            <Router />
+          </ClientErrorBoundary>
           <Toaster />
         </div>
       </TooltipProvider>
