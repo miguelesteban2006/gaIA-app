@@ -5,7 +5,7 @@ export const API_TIMEOUT_MS =
   Number((import.meta as any)?.env?.VITE_API_TIMEOUT_MS ?? 20000); // 20s por defecto
 
 export const AFTER_LOGIN_ROUTE =
-  ((import.meta as any)?.env?.VITE_AFTER_LOGIN_ROUTE as string) || "/home";
+  ((import.meta as any)?.env?.VITE_AFTER_LOGIN_ROUTE as string) || "/";
 
 // === Base URL ===
 export function getApiBaseUrl(): string {
