@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { apiJson } from "@/lib/queryClient";
+import { apiJson, apiRequest, queryClient } from "@/lib/queryClient";
 import { setAuthToken } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,24 +19,22 @@ export default function Landing() {
 
   // Limpia tokens imposibles cuando entras en la pantalla
   useEffect(() => {
-    const t = localStorage.getItem("eldercompanion_token");
+    const KEY = "eldercompanion_token";
+    const t = localStorage.getItem(KEY);
     if (t) {
       try {
         const parts = t.split(".");
-        if (parts.length !== 3) localStorage.removeItem("eldercompanion_token");
+        if (parts.length !== 3) localStorage.removeItem(KEY);
       } catch {
-        localStorage.removeItem("eldercompanion_token");
+        localStorage.removeItem(KEY);
       }
     }
   }, []);
 
-  // --- Utilidad: tras login/registro, decide a dónde ir ---
+  // Tras login/registro, decide a dónde ir (primer perfil o panel general)
   async function redirectAfterAuth() {
     try {
-      // Trae la lista de adultos. Sirve para saber a qué perfil entrar.
       const data = await apiJson<any>("GET", `${ELDERLY_LIST_ENDPOINT}?limit=1`);
-
-      // intentamos múltiples formas comunes de respuesta
       const list =
         (Array.isArray(data) && data) ||
         data?.items ||
@@ -48,23 +46,19 @@ export default function Landing() {
       const id = first?.id ?? first?._id ?? first?.uuid;
 
       if (id) {
-        // ir directo al primer perfil
         setLocation(`/elderly-users/${id}`);
       } else {
-        // no hay adultos: ve al panel general (lista)
-        setLocation("/");
+        setLocation("/"); // no hay adultos -> panel general
       }
     } catch {
-      // si falla el fetch, al menos entra al panel general
-      setLocation("/");
+      setLocation("/"); // si falla, al menos que entre al panel general
     }
   }
 
-  // --- Mutación de login/registro ---
+  // Mutación de login/registro con soporte "token o cookie"
   const authMutation = useMutation({
     mutationFn: async (payload: any) => {
       const endpoint = isLogin ? "/api/login" : "/api/register";
-      // usamos apiJson para que ya parsee y gestione errores
       return apiJson<{ ok?: boolean; token?: string; error?: string }>(
         "POST",
         endpoint,
@@ -72,17 +66,21 @@ export default function Landing() {
       );
     },
     onSuccess: async (data) => {
-      if (!data?.token) {
-        toast({
-          title: "Error",
-          description: "Respuesta inválida del servidor (sin token)",
-          variant: "destructive",
-        });
-        return;
+      // Si devuelve token, lo guardamos
+      if (data?.token) {
+        setAuthToken(data.token);
       }
 
-      // guardar token y redirigir a perfil o panel general
-      setAuthToken(data.token);
+      // Limpiamos cache para evitar estados obsoletos
+      queryClient.clear();
+
+      // Intentamos validar sesión vía cookie (o bearer si hay token)
+      try {
+        await apiRequest("GET", "/api/auth/user");
+      } catch {
+        // Si falla la validación, avisamos, pero seguimos con la redirección
+        // porque puede ser un falso negativo temporal.
+      }
 
       toast({
         title: "¡Bienvenido a GaIA!",
@@ -91,20 +89,20 @@ export default function Landing() {
           : "Tu cuenta ha sido creada exitosamente",
       });
 
+      // Ir al primer perfil o al panel general
       await redirectAfterAuth();
     },
     onError: (err: any) => {
-      const msg = String(err?.message || "");
+      const msg = String(err?.message || "").toUpperCase();
       let human = "Error al procesar la solicitud";
 
-      // mensajes más claros
       if (msg.includes("INVALID_CREDENTIALS") || msg.includes("401")) {
         human = "Credenciales inválidas";
-      } else if (msg.includes("USER_EXISTS") || msg.includes("already") || msg.includes("409")) {
+      } else if (msg.includes("USER_EXISTS") || msg.includes("ALREADY") || msg.includes("409")) {
         human = "Ese email ya está registrado";
       } else if (msg.includes("FIELDS_REQUIRED") || msg.includes("400")) {
         human = "Faltan datos o hay datos inválidos";
-      } else if (msg.toLowerCase().includes("timeout")) {
+      } else if (msg.includes("TIMEOUT")) {
         human = "El servidor tardó demasiado en responder";
       }
 
@@ -116,7 +114,6 @@ export default function Landing() {
     },
   });
 
-  // --- submit del formulario ---
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
