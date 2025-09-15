@@ -1,36 +1,34 @@
-// Utility functions for authentication management
+// client/src/lib/authUtils.ts
 
-export function clearAuthData() {
-  localStorage.removeItem('eldercompanion_token');
-  // Clear any cached queries related to auth
-  window.location.reload();
-}
+export const AUTH_TOKEN_KEY = "eldercompanion_token";
 
 export function setAuthToken(token: string) {
-  localStorage.setItem('eldercompanion_token', token);
+  localStorage.setItem(AUTH_TOKEN_KEY, token);
 }
 
 export function getAuthToken(): string | null {
-  return localStorage.getItem('eldercompanion_token');
+  return localStorage.getItem(AUTH_TOKEN_KEY);
+}
+
+export function clearAuthData() {
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  // En logout puedes recargar si quieres limpiar estado global
+  window.location.reload();
 }
 
 export function isTokenValid(token: string): boolean {
-  if (!token) return false;
-  
   try {
-    // Basic JWT structure check (header.payload.signature)
-    const parts = token.split('.');
+    const parts = token.split(".");
     if (parts.length !== 3) return false;
-    
-    // Check if payload can be parsed (basic validation)
-    const payload = JSON.parse(atob(parts[1]));
-    const now = Date.now() / 1000;
-    
-    // Check if token is expired
-    if (payload.exp && payload.exp < now) {
-      return false;
+
+    const payloadStr = atob(parts[1].replace(/-/g, "+").replace(/_/g, "/"));
+    const payload = JSON.parse(payloadStr);
+
+    if (payload && typeof payload.exp === "number") {
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp > now;
     }
-    
+    // Si no hay exp, asumimos válido (depende de tu backend)
     return true;
   } catch {
     return false;
@@ -38,16 +36,7 @@ export function isTokenValid(token: string): boolean {
 }
 
 export function isUnauthorizedError(error: any): boolean {
-  // Check if error has status or response status indicating unauthorized
-  if (error?.status === 401 || error?.response?.status === 401) {
-    return true;
-  }
-  
-  // Check if error message indicates unauthorized
-  if (error?.message && typeof error.message === 'string') {
-    const message = error.message.toLowerCase();
-    return message.includes('unauthorized') || message.includes('401');
-  }
-  
-  return false;
+  if (error?.status === 401 || error?.response?.status === 401) return true;
+  const msg = (error?.message || "").toLowerCase();
+  return msg.includes("unauthorized") || msg.includes("401");
 }

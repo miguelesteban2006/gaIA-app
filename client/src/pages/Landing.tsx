@@ -2,35 +2,31 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { setAuthToken, clearAuthData } from "@/lib/authUtils";
+import { setAuthToken } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, Shield, Brain, Users, Bot, Activity } from "lucide-react";
+import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
 
 export default function Landing() {
   const { toast } = useToast();
-  const [, navigate] = useLocation(); // ← añadido para redirigir tras login/registro
+  const [, navigate] = useLocation();
   const [isLogin, setIsLogin] = useState(true);
 
   // Limpiar cualquier token inválido al cargar la página de login
   useEffect(() => {
-    // Verificar si hay un token inválido y limpiarlo
-    const token = localStorage.getItem('eldercompanion_token');
+    const KEY = "eldercompanion_token";
+    const token = localStorage.getItem(KEY);
     if (token) {
-      // Verificar estructura básica del token
       try {
-        const parts = token.split('.');
+        const parts = token.split(".");
         if (parts.length !== 3) {
-          console.log('Token con formato inválido, limpiando');
-          localStorage.removeItem('eldercompanion_token');
+          localStorage.removeItem(KEY);
         }
       } catch {
-        console.log('Error al verificar token, limpiando');
-        localStorage.removeItem('eldercompanion_token');
+        localStorage.removeItem(KEY);
       }
     }
   }, []);
@@ -48,17 +44,22 @@ export default function Landing() {
         title: "¡Bienvenido a GaIA!",
         description: isLogin ? "Has iniciado sesión correctamente" : "Tu cuenta ha sido creada exitosamente",
       });
-      // 🔁 Antes: reload. Ahora: navega a "/" para que App.tsx muestre <Home /> si hay sesión
+      // 👉 Redirige a "/" para que App.tsx muestre <Home /> si hay sesión
       navigate("/", { replace: true });
     },
     onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message.includes("400") 
-          ? "El usuario ya existe o los datos son incorrectos" 
-          : "Error al procesar la solicitud",
-        variant: "destructive",
-      });
+      const msg = error.message || "";
+      let description = "Error al procesar la solicitud";
+      if (msg.includes("409") || msg.includes("EMAIL_EXISTS")) {
+        description = "Ese correo ya está registrado.";
+      } else if (msg.includes("401") || msg.includes("INVALID_CREDENTIALS")) {
+        description = "Correo o contraseña incorrectos.";
+      } else if (msg.includes("400") || msg.includes("FIELDS_REQUIRED")) {
+        description = "Revisa los campos del formulario.";
+      } else if (msg.toLowerCase().includes("timeout")) {
+        description = "El servidor tardó en responder. Inténtalo de nuevo.";
+      }
+      toast({ title: "Error", description, variant: "destructive" });
     },
   });
 
@@ -74,7 +75,7 @@ export default function Landing() {
     if (!isLogin) {
       data.firstName = formData.get("firstName");
       data.lastName = formData.get("lastName");
-      data.role = formData.get("role") || "family";
+      data.role = (formData.get("role") as string) || "family";
     }
 
     authMutation.mutate(data);
@@ -148,23 +149,11 @@ export default function Landing() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName">Nombre</Label>
-                        <Input
-                          id="firstName"
-                          name="firstName"
-                          type="text"
-                          required
-                          placeholder="Nombre"
-                        />
+                        <Input id="firstName" name="firstName" type="text" required placeholder="Nombre" />
                       </div>
                       <div>
                         <Label htmlFor="lastName">Apellido</Label>
-                        <Input
-                          id="lastName"
-                          name="lastName"
-                          type="text"
-                          required
-                          placeholder="Apellido"
-                        />
+                        <Input id="lastName" name="lastName" type="text" required placeholder="Apellido" />
                       </div>
                     </div>
                     <div>
@@ -185,31 +174,15 @@ export default function Landing() {
                 
                 <div>
                   <Label htmlFor="email">Correo Electrónico</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="tu@email.com"
-                  />
+                  <Input id="email" name="email" type="email" required placeholder="tu@email.com" />
                 </div>
                 
                 <div>
                   <Label htmlFor="password">Contraseña</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                  />
+                  <Input id="password" name="password" type="password" required placeholder="••••••••" />
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full btn-mobile"
-                  disabled={authMutation.isPending}
-                >
+                <Button type="submit" className="w-full btn-mobile" disabled={authMutation.isPending}>
                   {authMutation.isPending 
                     ? "Procesando..." 
                     : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
@@ -219,7 +192,7 @@ export default function Landing() {
               <div className="mt-4 text-center">
                 <button
                   type="button"
-                  onClick={() => setIsLogin(!isLogin)}
+                  onClick={() => setIsLogin((v) => !v)}
                   className="text-blue-600 hover:underline"
                 >
                   {isLogin 
