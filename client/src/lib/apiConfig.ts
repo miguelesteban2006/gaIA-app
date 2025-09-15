@@ -1,34 +1,39 @@
-// Configuration for API endpoints - handles development and production URLs
+// client/src/lib/apiConfig.ts
 
-export function getApiBaseUrl(): string {
-  // 1) Variable de entorno (recomendado en producción)
-  const viteApiUrl = (import.meta as any)?.env?.VITE_API_URL as string | undefined;
-  if (viteApiUrl && typeof viteApiUrl === 'string') {
-    return viteApiUrl.replace(/\/+$/, '');
+// === Timeout y ruta post-login configurables por entorno ===
+export const API_TIMEOUT_MS =
+  Number(import.meta.env.VITE_API_TIMEOUT_MS ?? 20000); // ← 20s
+
+export const AFTER_LOGIN_ROUTE =
+  (import.meta.env.VITE_AFTER_LOGIN_ROUTE as string) || "/home"; // ← cámbialo en Pages si quieres
+
+// Base URL de la API
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+
+// Helper con AbortController + timeout
+export async function apiFetch(path: string, init: RequestInit = {}) {
+  const url = new URL(path.startsWith("/") ? path : `/${path}`, API_BASE_URL || window.location.origin).toString();
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(url, {
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...(init.headers || {}) },
+      signal: controller.signal,
+      ...init,
+    });
+    return res;
+  } catch (err) {
+    // Normaliza el mensaje de timeout
+    if ((err as any)?.name === "AbortError") {
+      const e = new Error("TIMEOUT");
+      (e as any).code = "TIMEOUT";
+      throw e;
+    }
+    throw err;
+  } finally {
+    clearTimeout(id);
   }
-
-  // 2) Detección automática (local / preview)
-  if (typeof window !== 'undefined') {
-    const protocol = window.location.protocol;
-    const hostname = window.location.hostname;
-    const port = window.location.port;
-    const origin = `${protocol}//${hostname}${port ? `:${port}` : ''}`;
-    return origin.replace(/\/+$/, '');
-  }
-
-  // 3) Fallback para SSR/build tools
-  return 'http://localhost:5173';
 }
-
-export const API_CONFIG = {
-  timeout: 10000, // 10 segundos
-  retries: 2,
-  retryDelay: 1000 // 1 segundo
-};
-
-// Base calculada una vez
-const BASE = getApiBaseUrl();
-
-// Construye URL absoluta para la API
-export const apiUrl = (path: string) =>
-  new URL(path.startsWith('/') ? path : `/${path}`, BASE || window.location.origin).toString();

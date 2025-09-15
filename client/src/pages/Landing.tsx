@@ -11,8 +11,6 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Shield, Brain, Users, Bot, Activity } from "lucide-react";
 
-const AFTER_LOGIN_ROUTE = "/home"; // ⇦ si tu panel vive en otra ruta, cámbiala aquí
-
 export default function Landing() {
   const { toast } = useToast();
   const [, navigate] = useLocation(); // ← añadido para redirigir tras login/registro
@@ -50,8 +48,8 @@ export default function Landing() {
         title: "¡Bienvenido a GaIA!",
         description: isLogin ? "Has iniciado sesión correctamente" : "Tu cuenta ha sido creada exitosamente",
       });
-      // Antes: reload. Ahora: redirige al panel sin romper el diseño
-      navigate(AFTER_LOGIN_ROUTE, { replace: true });
+      // 🔁 Antes: reload. Ahora: navega a "/" para que App.tsx muestre <Home /> si hay sesión
+      navigate("/", { replace: true });
     },
     onError: (error: Error) => {
       toast({
@@ -221,7 +219,7 @@ export default function Landing() {
               <div className="mt-4 text-center">
                 <button
                   type="button"
-                  onClick={() => setIsLogin((prev) => !prev)} // ← más robusto
+                  onClick={() => setIsLogin(!isLogin)}
                   className="text-blue-600 hover:underline"
                 >
                   {isLogin 
