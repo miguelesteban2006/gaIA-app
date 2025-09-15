@@ -10,22 +10,67 @@ import { useToast } from "@/hooks/use-toast";
 import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
 import { useLocation } from "wouter";
 
+const TOKEN_KEY = "eldercompanion_token";
+
+// candidatos de endpoints para listar perfiles (probamos 1º disponible)
+const ELDERLY_LIST_CANDIDATES = [
+  "/api/elderly-users?limit=1",
+  "/api/elderly?limit=1",
+  "/api/patients?limit=1",
+  "/api/residents?limit=1",
+  "/api/seniors?limit=1",
+];
+
+// extrae un id de un payload de “lista”
+function pickFirstIdFromListPayload(payload: any) {
+  const list =
+    (Array.isArray(payload) && payload) ||
+    payload?.items ||
+    payload?.results ||
+    payload?.elderlyUsers ||
+    payload?.data ||
+    [];
+  const first = Array.isArray(list) ? list[0] : undefined;
+  return first?.id ?? first?._id ?? first?.uuid ?? null;
+}
+
+// intenta llamar al primer endpoint que exista sin sacar errores por consola
+async function fetchFirstElderlyIdSilently(): Promise<string | null> {
+  for (const url of ELDERLY_LIST_CANDIDATES) {
+    try {
+      const res = await fetch(url, {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem(TOKEN_KEY) || ""}`,
+        },
+      });
+      if (!res.ok) continue;
+      const text = await res.text();
+      const json = text ? JSON.parse(text) : {};
+      const id = pickFirstIdFromListPayload(json);
+      if (id) return String(id);
+    } catch {
+      /* ignoramos y probamos el siguiente */
+    }
+  }
+  return null;
+}
+
 export default function Landing() {
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [, setLocation] = useLocation();
 
-  // Limpiar cualquier token inválido al cargar la página de login
+  // Limpia tokens inválidos al cargar
   useEffect(() => {
-    const token = localStorage.getItem("eldercompanion_token");
-    if (token) {
+    const t = localStorage.getItem(TOKEN_KEY);
+    if (t) {
       try {
-        const parts = token.split(".");
-        if (parts.length !== 3) {
-          localStorage.removeItem("eldercompanion_token");
-        }
+        const parts = t.split(".");
+        if (parts.length !== 3) localStorage.removeItem(TOKEN_KEY);
       } catch {
-        localStorage.removeItem("eldercompanion_token");
+        localStorage.removeItem(TOKEN_KEY);
       }
     }
   }, []);
@@ -35,19 +80,35 @@ export default function Landing() {
       const endpoint = isLogin ? "/api/login" : "/api/register";
       const res = await apiRequest("POST", endpoint, data);
       const json = await res.json();
-      // si el backend devuelve error en el body con 200, forzamos throw para onError
       if (!res.ok || (json && json.ok === false)) {
         const code = json?.error || res.statusText || "REQUEST_FAILED";
         throw new Error(code);
       }
-      return json;
+      return json as {
+        ok?: boolean;
+        token?: string;
+        error?: string;
+        // si el backend lo incluye, lo aprovechamos:
+        firstElderlyId?: string;
+        elderlyId?: string;
+        profileId?: string;
+        user?: any;
+      };
     },
-    onSuccess: (data: any) => {
-      // Guarda token si viene (si no, puede que uses cookie de sesión)
+    onSuccess: async (data) => {
       if (data?.token) setAuthToken(data.token);
-
-      // Limpia la caché para evitar estados inconsistentes
       queryClient.clear();
+
+      // 1) Si el backend ya devuelve el id, úsalo
+      const idFromResponse =
+        data.firstElderlyId || data.elderlyId || data.profileId || null;
+
+      let targetId: string | null = idFromResponse ?? null;
+
+      // 2) Si no viene, intenta obtener el primer perfil sin log de errores
+      if (!targetId) {
+        targetId = await fetchFirstElderlyIdSilently();
+      }
 
       toast({
         title: "¡Bienvenido a GaIA!",
@@ -56,8 +117,12 @@ export default function Landing() {
           : "Tu cuenta ha sido creada exitosamente",
       });
 
-      // Redirigir al Home: desde ahí tu Router muestra el panel
-      setLocation("/");
+      if (targetId) {
+        setLocation(`/elderly-users/${targetId}`);
+      } else {
+        // si no hay perfiles todavía, vamos al Home
+        setLocation("/");
+      }
     },
     onError: (error: Error) => {
       const msg = (error?.message || "").toUpperCase();
@@ -119,7 +184,7 @@ export default function Landing() {
             </h1>
           </div>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            Sistema inteligente de monitoreo y cuidado para adultos mayores.
+            Sistema inteligente de monitoreo y cuidado para adultos mayores. 
             Conectando familias, profesionales médicos y asistentes robóticos para un cuidado integral.
           </p>
 
@@ -157,8 +222,8 @@ export default function Landing() {
                 {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
               </CardTitle>
               <CardDescription className="text-center">
-                {isLogin
-                  ? "Accede a tu panel de monitoreo GaIA"
+                {isLogin 
+                  ? "Accede a tu panel de monitoreo GaIA" 
                   : "Únete a la red de cuidado inteligente"}
               </CardDescription>
             </CardHeader>
@@ -169,23 +234,11 @@ export default function Landing() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName">Nombre</Label>
-                        <Input
-                          id="firstName"
-                          name="firstName"
-                          type="text"
-                          required
-                          placeholder="Nombre"
-                        />
+                        <Input id="firstName" name="firstName" type="text" required placeholder="Nombre" />
                       </div>
                       <div>
                         <Label htmlFor="lastName">Apellido</Label>
-                        <Input
-                          id="lastName"
-                          name="lastName"
-                          type="text"
-                          required
-                          placeholder="Apellido"
-                        />
+                        <Input id="lastName" name="lastName" type="text" required placeholder="Apellido" />
                       </div>
                     </div>
                     <div>
@@ -206,31 +259,15 @@ export default function Landing() {
 
                 <div>
                   <Label htmlFor="email">Correo Electrónico</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="tu@email.com"
-                  />
+                  <Input id="email" name="email" type="email" required placeholder="tu@email.com" />
                 </div>
 
                 <div>
                   <Label htmlFor="password">Contraseña</Label>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                  />
+                  <Input id="password" name="password" type="password" required placeholder="••••••••" />
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full btn-mobile"
-                  disabled={authMutation.isPending}
-                >
+                <Button type="submit" className="w-full btn-mobile" disabled={authMutation.isPending}>
                   {authMutation.isPending
                     ? "Procesando..."
                     : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
@@ -243,9 +280,7 @@ export default function Landing() {
                   onClick={() => setIsLogin(!isLogin)}
                   className="text-blue-600 hover:underline"
                 >
-                  {isLogin
-                    ? "¿No tienes cuenta? Regístrate"
-                    : "¿Ya tienes cuenta? Inicia sesión"}
+                  {isLogin ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
                 </button>
               </div>
             </CardContent>
@@ -263,12 +298,12 @@ export default function Landing() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400">
-                Algoritmos de IA especializados en análisis de comportamiento y detección temprana
+                Algoritmos de IA especializados en análisis de comportamiento y detección temprana 
                 de cambios en el estado de salud y bienestar emocional.
               </p>
             </CardContent>
           </Card>
-
+          
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -278,7 +313,7 @@ export default function Landing() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400">
-                Todos los datos están protegidos con los más altos estándares de seguridad.
+                Todos los datos están protegidos con los más altos estándares de seguridad. 
                 Control total sobre quién puede acceder a la información del adulto mayor.
               </p>
             </CardContent>
