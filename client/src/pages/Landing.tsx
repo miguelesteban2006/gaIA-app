@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
 import { useLocation } from "wouter";
 
-// Candidatos de endpoints (si tu backend tiene otros, añade aquí)
+// Candidatos por si tu backend usa otros nombres de rutas
 const AUTH_USER_CANDIDATES = [
   "/api/auth/user",
   "/api/auth/me",
@@ -27,11 +27,7 @@ const ELDERLY_LIST_CANDIDATES = [
   "/api/seniors?limit=1",
 ];
 
-async function probeFirstOkEndpoint(candidates: string) {
-  // overload signature guard
-  return null as never;
-}
-
+// ÚNICA implementación (sin duplicados)
 async function probeFirstOkEndpoint(
   candidates: string[]
 ): Promise<{ url: string; json: any } | null> {
@@ -41,8 +37,8 @@ async function probeFirstOkEndpoint(
       const text = await res.text();
       const json = text ? JSON.parse(text) : {};
       return { url, json };
-    } catch (e: any) {
-      // ignoramos 404/401/etc. y probamos el siguiente
+    } catch {
+      // ignoramos errores y probamos el siguiente
       continue;
     }
   }
@@ -67,7 +63,7 @@ export default function Landing() {
   const [isLogin, setIsLogin] = useState(true);
   const [, setLocation] = useLocation();
 
-  // Limpia tokens con formato inválido al cargar
+  // Limpia tokens con formato imposible al cargar
   useEffect(() => {
     const KEY = "eldercompanion_token";
     const t = localStorage.getItem(KEY);
@@ -83,7 +79,6 @@ export default function Landing() {
 
   // Decide a dónde ir: primer perfil si existe, si no al panel general
   async function redirectAfterAuth() {
-    // Primero probamos la lista de adultos con autodetección
     const probe = await probeFirstOkEndpoint(ELDERLY_LIST_CANDIDATES);
 
     if (probe?.json) {
@@ -93,11 +88,10 @@ export default function Landing() {
         return;
       }
     }
-    // Si no hay perfiles o no encontramos endpoint, vamos al panel general
+    // Sin perfiles o sin endpoint → panel general
     setLocation("/");
   }
 
-  // Mutación de login/registro con soporte "token o cookie"
   const authMutation = useMutation({
     mutationFn: async (payload: any) => {
       const endpoint = isLogin ? "/api/login" : "/api/register";
@@ -108,17 +102,17 @@ export default function Landing() {
       );
     },
     onSuccess: async (data) => {
-      // Guarda token si viene en la respuesta (si no, puede ser sesión por cookie)
+      // Guarda token si viene (si no, puede ser sesión por cookie)
       if (data?.token) setAuthToken(data.token);
 
-      // Limpia caché de React Query
+      // Limpia cache de React Query
       queryClient.clear();
 
-      // Valida sesión (autodetectando endpoint de "usuario actual")
+      // Intenta validar sesión (autodetección de endpoint)
       try {
         await probeFirstOkEndpoint(AUTH_USER_CANDIDATES);
       } catch {
-        // si falla, seguimos igualmente (puede ser cookie aún sin validar)
+        // ignoramos error de validación y seguimos
       }
 
       toast({
