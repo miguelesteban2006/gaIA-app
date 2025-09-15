@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { setAuthToken } from "@/lib/authUtils";
+import { AFTER_LOGIN_ROUTE } from "@/lib/apiConfig"; // <- para centralizar la ruta
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,6 @@ import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
 
 export default function Landing() {
   const { toast } = useToast();
-  const [, navigate] = useLocation();
   const [isLogin, setIsLogin] = useState(true);
 
   // Limpiar cualquier token inválido al cargar la página de login
@@ -22,9 +22,7 @@ export default function Landing() {
     if (token) {
       try {
         const parts = token.split(".");
-        if (parts.length !== 3) {
-          localStorage.removeItem(KEY);
-        }
+        if (parts.length !== 3) localStorage.removeItem(KEY);
       } catch {
         localStorage.removeItem(KEY);
       }
@@ -38,17 +36,28 @@ export default function Landing() {
       return response.json();
     },
     onSuccess: (data) => {
+      // 1) Guardar token
       setAuthToken(data.token);
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+
+      // 2) Invalida/limpia cache para que el router vea el estado nuevo al remontar
+      queryClient.clear();
+
+      // 3) Notificación
       toast({
         title: "¡Bienvenido a GaIA!",
-        description: isLogin ? "Has iniciado sesión correctamente" : "Tu cuenta ha sido creada exitosamente",
+        description: isLogin
+          ? "Has iniciado sesión correctamente"
+          : "Tu cuenta ha sido creada exitosamente",
       });
-      // 👉 Redirige a "/" para que App.tsx muestre <Home /> si hay sesión
-      navigate("/", { replace: true });
+
+      // 4) Redirección 100% fiable al panel (Home) sin dejar rastro del login en el historial
+      //    Por defecto AFTER_LOGIN_ROUTE = "/". Si quieres otra (p.ej. "/home"), cámbiala en apiConfig o .env
+      setTimeout(() => {
+        window.location.replace(AFTER_LOGIN_ROUTE || "/");
+      }, 50);
     },
     onError: (error: Error) => {
-      const msg = error.message || "";
+      const msg = (error?.message || "").toUpperCase();
       let description = "Error al procesar la solicitud";
       if (msg.includes("409") || msg.includes("EMAIL_EXISTS")) {
         description = "Ese correo ya está registrado.";
@@ -56,7 +65,7 @@ export default function Landing() {
         description = "Correo o contraseña incorrectos.";
       } else if (msg.includes("400") || msg.includes("FIELDS_REQUIRED")) {
         description = "Revisa los campos del formulario.";
-      } else if (msg.toLowerCase().includes("timeout")) {
+      } else if (msg.includes("TIMEOUT")) {
         description = "El servidor tardó en responder. Inténtalo de nuevo.";
       }
       toast({ title: "Error", description, variant: "destructive" });
