@@ -27,14 +27,14 @@ function Router() {
 
   return (
     <Switch>
-      {!isAuthenticated ? (
-        <Route path="/" component={Landing} />
-      ) : (
-        <>
-          <Route path="/" component={Home} />
-          <Route path="/elderly-users/:id" component={ElderlyUserProfile} />
-        </>
-      )}
+      {/* IMPORTANTE: esta ruta va antes para no quedar eclipsada por "/" */}
+      <Route path="/elderly-users/:id" component={ElderlyUserProfile} />
+
+      {/* En "/" decidimos qué mostrar según auth en tiempo real */}
+      <Route path="/">
+        {isAuthenticated ? <Home /> : <Landing />}
+      </Route>
+
       <Route component={NotFound} />
     </Switch>
   );
