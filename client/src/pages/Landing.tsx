@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
+import { Link, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { setAuthToken } from "@/lib/authUtils";
-import { AFTER_LOGIN_ROUTE } from "@/lib/apiConfig"; // igual que en el proyecto antiguo
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,77 +10,104 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
 
-const TOKEN_KEY = "eldercompanion_token";
-
-// Intenta sacar un id de distintas propiedades típicas del response
-function takeElderlyIdFromResponse(payload: any): string | null {
-  if (!payload) return null;
-
-  const direct =
-    payload.firstElderlyId ||
-    payload.elderlyId ||
-    payload.profileId ||
-    payload.defaultElderlyId ||
-    payload.defaultProfileId;
-
-  if (direct) return String(direct);
-
-  const u = payload.user || payload.data?.user || null;
-  if (u) {
-    const fromUser =
-      u.firstElderlyId || u.elderlyId || u.profileId || u.defaultElderlyId || u.defaultProfileId;
-    if (fromUser) return String(fromUser);
-  }
-  return null;
-}
-
 export default function Landing() {
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
+  const [, setLocation] = useLocation();
 
-  // Limpiar cualquier token inválido al cargar la página de login (igual que en tu versión antigua)
+  // Limpiar tokens corruptos al cargar
   useEffect(() => {
-    const token = localStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem("eldercompanion_token");
     if (token) {
       try {
         const parts = token.split(".");
-        if (parts.length !== 3) {
-          localStorage.removeItem(TOKEN_KEY);
-        }
+        if (parts.length !== 3) localStorage.removeItem("eldercompanion_token");
       } catch {
-        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem("eldercompanion_token");
       }
     }
   }, []);
 
+  // ——— NUEVO: helper para, tras login/registro, ir al panel correcto ———
+  const goToUserPanel = async () => {
+    try {
+      // 1) Intentar obtener el usuario autenticado (si existe el endpoint)
+      let me: any = null;
+      for (const path of ["/api/auth/me", "/api/auth/user"]) {
+        try {
+          const r = await apiRequest("GET", path);
+          if (r.ok) {
+            me = await r.json();
+            break;
+          }
+        } catch {
+          /* sigue probando */
+        }
+      }
+
+      // 2) Buscar el primer perfil de adulto mayor del usuario (probando endpoints conocidos)
+      const candidates = [
+        "/api/elderly-users?limit=1",
+        "/api/elderly?limit=1",
+        "/api/patients?limit=1",
+        "/api/residents?limit=1",
+        "/api/seniors?limit=1",
+      ];
+
+      let firstId: string | null = null;
+
+      for (const path of candidates) {
+        try {
+          const r = await apiRequest("GET", path);
+          if (!r.ok) continue;
+          const json = await r.json();
+
+          // Aceptamos varios formatos (array o objeto con data)
+          const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
+          if (list.length > 0) {
+            const item = list[0];
+            // Intenta mapear posibles nombres de campo para ID
+            firstId =
+              item?.id ?? item?._id ?? item?.elderlyId ?? item?.uuid ?? null;
+            if (firstId) break;
+          }
+        } catch {
+          // sigue probando
+        }
+      }
+
+      // 3) Redirigir
+      if (firstId) {
+        setLocation(`/elderly-users/${firstId}`);
+      } else {
+        // Si no hay perfiles aún, ve al Home (desde ahí el usuario crea uno)
+        setLocation("/");
+      }
+    } catch {
+      // Fallback
+      setLocation("/");
+    }
+  };
+
   const authMutation = useMutation({
     mutationFn: async (data: any) => {
       const endpoint = isLogin ? "/api/login" : "/api/register";
-      const res = await apiRequest("POST", endpoint, data);
-      const json = await res.json();
-      if (!res.ok || (json && json.ok === false)) {
-        const code = json?.error || res.statusText || "REQUEST_FAILED";
-        throw new Error(code);
+      const response = await apiRequest("POST", endpoint, data);
+      if (!response.ok) {
+        const txt = await response.text().catch(() => "");
+        // Lanzamos error con el texto del backend para parsearlo abajo
+        throw new Error(`${response.status}:${txt}`);
       }
-      return json as {
-        ok?: boolean;
-        token?: string;
-        error?: string;
-        // opcionales, si el backend los manda
-        firstElderlyId?: string;
-        elderlyId?: string;
-        profileId?: string;
-        user?: any;
-      };
+      return response.json();
     },
-    onSuccess: (data) => {
-      // Guarda token si llega (si usas cookies, setAuthToken también marca sesión)
-      setAuthToken(data.token);
+    onSuccess: async (data) => {
+      // Guardar token para siguientes peticiones
+      if (data?.token) setAuthToken(data.token);
 
-      // Limpia cache de react-query
-      queryClient.clear();
+      // Refrescar caché de usuario
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
 
-      // Mensaje UX
       toast({
         title: "¡Bienvenido a GaIA!",
         description: isLogin
@@ -88,34 +115,36 @@ export default function Landing() {
           : "Tu cuenta ha sido creada exitosamente",
       });
 
-      // Decide a dónde ir:
-      // 1) Si viene un id de perfil/paciente en el response, vamos a /elderly-users/:id
-      // 2) Si no, usamos la ruta centralizada (por defecto "/") como en el proyecto antiguo
-      const maybeId = takeElderlyIdFromResponse(data);
-      const target = maybeId ? `/elderly-users/${maybeId}` : (AFTER_LOGIN_ROUTE || "/");
-
-      // Redirect duro para que el Router remonte con el estado de auth ya actualizado
-      window.location.replace(target);
+      // ——— NUEVO: ir directo al panel del primer perfil ———
+      await goToUserPanel();
     },
     onError: (error: Error) => {
-      const msg = (error?.message || "").toUpperCase();
-      let description = "Error al procesar la solicitud";
-
-      if (msg.includes("INVALID_CREDENTIALS") || msg.includes("401")) {
-        description = "Credenciales inválidas";
-      } else if (msg.includes("USER_EXISTS") || msg.includes("ALREADY") || msg.includes("409")) {
-        description = "Ese email ya está registrado";
-      } else if (msg.includes("FIELDS_REQUIRED") || msg.includes("400")) {
-        description = "Faltan datos o hay datos inválidos";
-      } else if (msg.includes("TIMEOUT")) {
-        description = "El servidor tardó demasiado en responder";
-      } else if (msg.includes("NOT FOUND") || msg.includes("404")) {
-        description = "Ruta no encontrada en el servidor";
+      const msg = error.message || "";
+      // Mensajes más claros según backend
+      if (msg.startsWith("401:")) {
+        return toast({
+          title: "Credenciales inválidas",
+          description: "Revisa tu email y contraseña.",
+          variant: "destructive",
+        });
       }
-
+      if (msg.includes("FIELDS_REQUIRED") || msg.startsWith("400:")) {
+        return toast({
+          title: "Datos incompletos o usuario existente",
+          description: "Revisa los campos. Si es registro, puede que el email ya exista.",
+          variant: "destructive",
+        });
+      }
+      if (msg.startsWith("409:")) {
+        return toast({
+          title: "El usuario ya existe",
+          description: "Prueba con otro correo o inicia sesión.",
+          variant: "destructive",
+        });
+      }
       toast({
-        title: "No se pudo completar",
-        description,
+        title: "Error",
+        description: "Error al procesar la solicitud",
         variant: "destructive",
       });
     },
