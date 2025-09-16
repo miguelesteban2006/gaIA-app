@@ -1,63 +1,40 @@
-// client/src/lib/queryClient.ts
 import { QueryClient } from "@tanstack/react-query";
-import { getApiBaseUrl } from "./apiConfig";
+import { getApiBaseUrl, API_CONFIG } from "./apiConfig";
 
 export const TOKEN_KEY = "eldercompanion_token";
-const DEFAULT_TIMEOUT_MS = 10000; // 10s
 
 export const queryClient = new QueryClient();
 
-export function getAuthHeader(): Record<string, string> {
-  const token = localStorage.getItem(TOKEN_KEY);
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-async function throwIfResNotOk(res: Response) {
-  if (!res.ok) {
-    let text = "";
-    try {
-      text = await res.text();
-    } catch {}
-    throw new Error(`${res.status}: ${text || res.statusText}`);
-  }
-  return res;
-}
-
 export async function apiRequest(
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
-  url: string,
-  body?: unknown,
-  init?: RequestInit
-) {
+  method: string,
+  path: string,
+  body?: any,
+  options?: RequestInit
+): Promise<Response> {
   const base = getApiBaseUrl();
-
   const headers: Record<string, string> = {
+    Accept: "application/json",
     "Content-Type": "application/json",
-    ...getAuthHeader(),
-    ...(init?.headers as Record<string, string> | undefined),
+    ...(options?.headers as Record<string, string> | undefined),
   };
 
-  const res = await fetch(base + url, {
-    method,
-    headers,
-    credentials: "include",
-    body: body != null ? JSON.stringify(body) : undefined,
-    signal:
-      (init?.signal as AbortSignal | undefined) ??
-      AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
-    ...init,
-  });
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (token) headers.Authorization = `Bearer ${token}`;
 
-  return throwIfResNotOk(res);
-}
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), API_CONFIG.timeout ?? 10000);
 
-export async function apiJson<T = any>(
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
-  url: string,
-  body?: unknown,
-  init?: RequestInit
-): Promise<T> {
-  const res = await apiRequest(method, url, body, init);
-  const text = await res.text();
-  return text ? (JSON.parse(text) as T) : ({} as T);
+  try {
+    const res = await fetch(`${base}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      credentials: "include",
+      signal: ctrl.signal,
+      ...options,
+    });
+    return res; // ⬅️ devolvemos siempre la Response; no lanzamos aquí
+  } finally {
+    clearTimeout(t);
+  }
 }

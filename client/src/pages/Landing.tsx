@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { setAuthToken } from "@/lib/authUtils";
@@ -9,30 +8,58 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Heart, Shield, Brain, Users, Activity } from "lucide-react";
+import { useLocation } from "wouter";
+
+// Helpers para interpretar respuestas de listados con formas distintas
+function pickList(payload: any): any[] {
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.results)) return payload.results;
+  return [];
+}
+function pickId(item: any): string | undefined {
+  return item?.id ?? item?._id ?? item?.uuid ?? item?.ID ?? item?.Id;
+}
 
 export default function Landing() {
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
   const [, setLocation] = useLocation();
 
-  // 1) Utilidades para encontrar/crear un perfil y redirigir
-  async function extractFirstIdFromJson(json: any): Promise<string | null> {
-    if (!json) return null;
+  // Limpiar tokens corruptos al abrir
+  useEffect(() => {
+    const token = localStorage.getItem("eldercompanion_token");
+    if (token) {
+      try {
+        const parts = token.split(".");
+        if (parts.length !== 3) localStorage.removeItem("eldercompanion_token");
+      } catch {
+        localStorage.removeItem("eldercompanion_token");
+      }
+    }
+  }, []);
 
-    // Respuestas típicas: Array directo o {data: [...]}
-    const arr =
-      Array.isArray(json) ? json :
-      Array.isArray(json?.data) ? json.data :
-      Array.isArray(json?.items) ? json.items :
-      null;
+  // Tras login/registro: obtener usuario y redirigir a su primer perfil
+  const afterAuthRedirectFlow = async () => {
+    // 1) Refrescar datos de usuario (tolerante a diferentes endpoints)
+    let me: any = null;
+    const authCandidates = ["/api/auth/me", "/api/auth/user"];
+    for (const p of authCandidates) {
+      try {
+        const r = await apiRequest("GET", p);
+        if (r.ok) {
+          me = await r.json();
+          break;
+        }
+      } catch {
+        // sigue probando
+      }
+    }
 
-    const first = arr && arr.length ? arr[0] : null;
-    if (!first) return null;
-
-    return first.id || first._id || first.uuid || null;
-  }
-
-  async function tryListFirstProfile(): Promise<{ id: string } | null> {
+    // 2) Buscar el primer adulto mayor del usuario
+    let elderlyId: string | undefined;
     const listCandidates = [
       "/api/elderly-users?limit=1",
       "/api/elderly?limit=1",
@@ -41,110 +68,107 @@ export default function Landing() {
       "/api/seniors?limit=1",
     ];
 
-    for (const path of listCandidates) {
+    for (const p of listCandidates) {
       try {
-        const res = await apiRequest("GET", path);
-        if (res.ok) {
-          const json = await res.json();
-          const id = await extractFirstIdFromJson(json);
-          if (id) return { id };
+        const r = await apiRequest("GET", p);
+        if (r.ok) {
+          const json = await r.json();
+          const list = pickList(json);
+          if (list.length > 0) {
+            elderlyId = pickId(list[0]);
+            if (elderlyId) break;
+          }
         }
       } catch {
-        // probar siguiente
+        // sigue probando
       }
     }
-    return null;
-  }
 
-  async function tryCreateDefaultProfile(): Promise<{ id: string } | null> {
-    // Sólo intentamos crear en el recurso canónico de frontend
-    const createBody = {
-      firstName: "Mi familiar",
-      lastName: "",
-    };
-    try {
-      const res = await apiRequest("POST", "/api/elderly-users", createBody);
-      if (res.ok) {
-        const json = await res.json();
-        const id = json?.id || json?._id || json?.data?.id || json?.data?._id || null;
-        if (id) return { id };
-      }
-    } catch {
-      // ignorar
-    }
-    return null;
-  }
-
-  async function redirectToFirstProfileOrHome() {
-    // 1) buscar primer perfil existente
-    const existing = await tryListFirstProfile();
-    if (existing?.id) {
-      // Redirección dura para evitar estados en memoria
-      window.location.replace(`/elderly-users/${existing.id}`);
-      return;
-    }
-    // 2) intentar crear uno por defecto
-    const created = await tryCreateDefaultProfile();
-    if (created?.id) {
-      window.location.replace(`/elderly-users/${created.id}`);
-      return;
-    }
-    // 3) fallback
-    window.location.replace(`/`);
-  }
-
-  // Limpiar cualquier token inválido al cargar la página de login
-  useEffect(() => {
-    const token = localStorage.getItem("eldercompanion_token");
-    if (token) {
+    // 3) Si no existe ninguno, crear uno básico para poder entrar
+    if (!elderlyId) {
       try {
-        const parts = token.split(".");
-        if (parts.length !== 3) {
-          localStorage.removeItem("eldercompanion_token");
+        const createCandidates = [
+          "/api/elderly-users",
+          "/api/elderly",
+          "/api/patients",
+          "/api/residents",
+          "/api/seniors",
+        ];
+        const body = {
+          firstName: "Mi familiar",
+          lastName: "",
+        };
+        for (const p of createCandidates) {
+          try {
+            const r = await apiRequest("POST", p, body);
+            if (r.ok) {
+              const json = await r.json();
+              const createdId = pickId(json) ?? pickId(json?.data);
+              if (createdId) {
+                elderlyId = createdId;
+                break;
+              }
+            }
+          } catch {
+            // intenta el siguiente
+          }
         }
       } catch {
-        localStorage.removeItem("eldercompanion_token");
+        // sin crear, seguimos
       }
     }
-  }, []);
+
+    // 4) Invalidar cache de auth y redirigir
+    queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+
+    if (elderlyId) {
+      setLocation(`/elderly-users/${elderlyId}`);
+    } else {
+      // Si no tenemos id (API aún sin endpoints), como fallback ve al inicio autenticado (Home)
+      setLocation("/");
+    }
+  };
 
   const authMutation = useMutation({
     mutationFn: async (data: any) => {
       const endpoint = isLogin ? "/api/login" : "/api/register";
       const response = await apiRequest("POST", endpoint, data);
-      if (!response.ok) {
-        const msg = await response.text().catch(() => "");
-        throw new Error(`${response.status}:${msg || "ERROR"}`);
-      }
+      // Si la API devuelve error con cuerpo JSON, apiRequest lanzará; aquí sólo ok
       return response.json();
     },
-    onSuccess: async (data) => {
-      // Guardar token (si tu backend devuelve token; si usas cookie, esto no rompe)
+    onSuccess: async (data: any) => {
+      // Guardar token si existe (si trabajas con cookie de sesión, puede no venir)
       if (data?.token) setAuthToken(data.token);
-
-      // Refrescar caches de usuario
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
 
       toast({
         title: "¡Bienvenido a GaIA!",
-        description: isLogin ? "Has iniciado sesión correctamente" : "Tu cuenta ha sido creada exitosamente",
+        description: isLogin
+          ? "Has iniciado sesión correctamente"
+          : "Tu cuenta ha sido creada exitosamente",
       });
 
-      // Redirigir SIEMPRE a un perfil (creando uno si no hay)
-      await redirectToFirstProfileOrHome();
+      // Pequeña pausa para asegurar persistencia de auth y cookies
+      setTimeout(() => {
+        afterAuthRedirectFlow().catch(() => {
+          // como último recurso, recarga
+          window.location.reload();
+        });
+      }, 300);
     },
-    onError: (error: Error) => {
-      const msg = error.message || "";
-      const is400 = msg.startsWith("400");
-      const is409 = msg.startsWith("409") || msg.includes("ALREADY") || msg.includes("EXISTS");
+    onError: (error: any) => {
+      const msg = String(error?.message || "");
+      let description = "Error al procesar la solicitud";
+      if (msg.includes("USER_EXISTS") || msg.includes("already") || msg.includes("EXISTS")) {
+        description = "Ese usuario ya existe";
+      } else if (msg.includes("FIELDS_REQUIRED") || msg.includes("400")) {
+        description = "Datos incompletos o inválidos";
+      } else if (msg.includes("INVALID_CREDENTIALS") || msg.includes("401")) {
+        description = "Credenciales inválidas";
+      }
       toast({
         title: "Error",
-        description: is409
-          ? "Ese correo ya está registrado"
-          : is400
-          ? "El usuario ya existe o los datos son incorrectos"
-          : "Error al procesar la solicitud",
+        description,
         variant: "destructive",
       });
     },
@@ -168,7 +192,7 @@ export default function Landing() {
     authMutation.mutate(data);
   };
 
-  // ======= UI (tu diseño original) =======
+  // === Diseño anterior conservado ===
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Hero Section */}
@@ -177,9 +201,9 @@ export default function Landing() {
           <div className="flex justify-center items-center gap-3 mb-6">
             <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
               <svg viewBox="0 0 32 32" className="w-10 h-10 fill-white">
-                <ellipse cx="18" cy="12" rx="6" ry="8" transform="rotate(-15 18 12)"/>
-                <circle cx="14" cy="9" r="3"/>
-                <path d="M15 10 Q16 11 17 12" stroke="white" strokeWidth="1" fill="none"/>
+                <ellipse cx="18" cy="12" rx="6" ry="8" transform="rotate(-15 18 12)" />
+                <circle cx="14" cy="9" r="3" />
+                <path d="M15 10 Q16 11 17 12" stroke="white" strokeWidth="1" fill="none" />
               </svg>
             </div>
             <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">
@@ -187,7 +211,7 @@ export default function Landing() {
             </h1>
           </div>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-            Sistema inteligente de monitoreo y cuidado para adultos mayores. 
+            Sistema inteligente de monitoreo y cuidado para adultos mayores.
             Conectando familias, profesionales médicos y asistentes robóticos para un cuidado integral.
           </p>
 
@@ -225,8 +249,8 @@ export default function Landing() {
                 {isLogin ? "Iniciar Sesión" : "Crear Cuenta"}
               </CardTitle>
               <CardDescription className="text-center">
-                {isLogin 
-                  ? "Accede a tu panel de monitoreo GaIA" 
+                {isLogin
+                  ? "Accede a tu panel de monitoreo GaIA"
                   : "Únete a la red de cuidado inteligente"}
               </CardDescription>
             </CardHeader>
@@ -294,14 +318,16 @@ export default function Landing() {
                   />
                 </div>
 
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full btn-mobile"
                   disabled={authMutation.isPending}
                 >
-                  {authMutation.isPending 
-                    ? "Procesando..." 
-                    : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
+                  {authMutation.isPending
+                    ? "Procesando..."
+                    : isLogin
+                    ? "Iniciar Sesión"
+                    : "Crear Cuenta"}
                 </Button>
               </form>
 
@@ -311,8 +337,8 @@ export default function Landing() {
                   onClick={() => setIsLogin(!isLogin)}
                   className="text-blue-600 hover:underline"
                 >
-                  {isLogin 
-                    ? "¿No tienes cuenta? Regístrate" 
+                  {isLogin
+                    ? "¿No tienes cuenta? Regístrate"
                     : "¿Ya tienes cuenta? Inicia sesión"}
                 </button>
               </div>
@@ -331,7 +357,7 @@ export default function Landing() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400">
-                Algoritmos de IA especializados en análisis de comportamiento y detección temprana 
+                Algoritmos de IA especializados en análisis de comportamiento y detección temprana
                 de cambios en el estado de salud y bienestar emocional.
               </p>
             </CardContent>
@@ -346,7 +372,7 @@ export default function Landing() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 dark:text-gray-400">
-                Todos los datos están protegidos con los más altos estándares de seguridad. 
+                Todos los datos están protegidos con los más altos estándares de seguridad.
                 Control total sobre quién puede acceder a la información del adulto mayor.
               </p>
             </CardContent>
