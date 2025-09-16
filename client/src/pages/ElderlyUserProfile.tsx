@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRoute, useLocation } from "wouter";
+import { useRoute, useLocation, Link } from "wouter";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Plus, X, Save, Edit, User, Heart, Pill, AlertTriangle, Eye, Accessibility } from "lucide-react";
-import { Link } from "wouter";
 
 interface Medication {
   name: string;
@@ -57,22 +56,21 @@ interface ElderlyUser {
 
 export default function ElderlyUserProfile() {
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [match, params] = useRoute("/elderly-users/:id");
   const elderlyUserId = params?.id;
 
   const [isEditing, setIsEditing] = useState(false);
-  const [, setLocation] = useLocation();
   const [resourceBase, setResourceBase] = useState<string | null>(null);
-
   const [formData, setFormData] = useState<Partial<ElderlyUser>>({});
 
   useEffect(() => {
+    // si no hay id en la ruta, volvemos al listado
     if (!match || !elderlyUserId) {
       setLocation("/");
     }
   }, [match, elderlyUserId, setLocation]);
 
-  // Fetch elderly user data (robusto, prueba varias rutas)
   const { data: elderlyUser, isLoading } = useQuery({
     queryKey: ["elderly-user", elderlyUserId],
     enabled: !!elderlyUserId,
@@ -95,7 +93,7 @@ export default function ElderlyUserProfile() {
             return json;
           }
         } catch {
-          // sigue probando
+          // probar siguiente
         }
       }
       throw new Error("NOT_FOUND");
@@ -103,16 +101,18 @@ export default function ElderlyUserProfile() {
     retry: false,
   });
 
-  // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (data: Partial<ElderlyUser>) => {
       const base = resourceBase || "/api/elderly-users";
       const response = await apiRequest("PUT", `${base}/${elderlyUserId}`, data);
+      if (!response.ok) {
+        const msg = await response.text().catch(() => "");
+        throw new Error(msg || "No se pudo guardar");
+      }
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["elderly-user", elderlyUserId] });
-      queryClient.invalidateQueries({ queryKey: [`/api/elderly-users/${elderlyUserId}`] });
       toast({
         title: "Perfil actualizado",
         description: "Los cambios se han guardado correctamente",
@@ -122,16 +122,14 @@ export default function ElderlyUserProfile() {
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "No se pudo guardar",
         variant: "destructive",
       });
     },
   });
 
   useEffect(() => {
-    if (elderlyUser) {
-      setFormData(elderlyUser as ElderlyUser);
-    }
+    if (elderlyUser) setFormData(elderlyUser as ElderlyUser);
   }, [elderlyUser]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -143,7 +141,7 @@ export default function ElderlyUserProfile() {
     const newMedication: Medication = { name: "", dose: "", schedule: "", notes: "" };
     setFormData(prev => ({
       ...prev,
-      medications: [...(prev.medications || []), newMedication]
+      medications: [...(prev.medications || []), newMedication],
     }));
   };
 
@@ -158,25 +156,32 @@ export default function ElderlyUserProfile() {
   const removeMedication = (index: number) => {
     setFormData(prev => ({
       ...prev,
-      medications: prev.medications?.filter((_, i) => i !== index)
+      medications: prev.medications?.filter((_, i) => i !== index),
     }));
   };
 
-  const addArrayItem = (arrayName: 'diagnoses' | 'allergies' | 'sensitivities' | 'mobilityAids', value: string) => {
+  const addArrayItem = (
+    arrayName: "diagnoses" | "allergies" | "sensitivities" | "mobilityAids",
+    value: string
+  ) => {
     if (!value.trim()) return;
     setFormData(prev => ({
       ...prev,
-      [arrayName]: [...(prev[arrayName] || []), value.trim()]
+      [arrayName]: [...(prev[arrayName] || []), value.trim()],
     }));
   };
 
-  const removeArrayItem = (arrayName: 'diagnoses' | 'allergies' | 'sensitivities' | 'mobilityAids', index: number) => {
+  const removeArrayItem = (
+    arrayName: "diagnoses" | "allergies" | "sensitivities" | "mobilityAids",
+    index: number
+  ) => {
     setFormData(prev => ({
       ...prev,
-      [arrayName]: prev[arrayName]?.filter((_, i) => i !== index)
+      [arrayName]: prev[arrayName]?.filter((_, i) => i !== index),
     }));
   };
 
+  // ======= UI =======
   if (isLoading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
@@ -548,7 +553,7 @@ export default function ElderlyUserProfile() {
                 onChange={(e) =>
                   setFormData(prev => ({
                     ...prev,
-                    emergencyContact: { ...(prev.emergencyContact || { relationship: "", phone: "" }), name: e.target.value }
+                    emergencyContact: { ...(prev.emergencyContact || { relationship: "", phone: "" }), name: e.target.value },
                   }))
                 }
                 disabled={!isEditing}
@@ -561,7 +566,7 @@ export default function ElderlyUserProfile() {
                 onChange={(e) =>
                   setFormData(prev => ({
                     ...prev,
-                    emergencyContact: { ...(prev.emergencyContact || { name: "", phone: "" }), relationship: e.target.value }
+                    emergencyContact: { ...(prev.emergencyContact || { name: "", phone: "" }), relationship: e.target.value },
                   }))
                 }
                 disabled={!isEditing}
@@ -574,7 +579,7 @@ export default function ElderlyUserProfile() {
                 onChange={(e) =>
                   setFormData(prev => ({
                     ...prev,
-                    emergencyContact: { ...(prev.emergencyContact || { name: "", relationship: "" }), phone: e.target.value }
+                    emergencyContact: { ...(prev.emergencyContact || { name: "", relationship: "" }), phone: e.target.value },
                   }))
                 }
                 disabled={!isEditing}

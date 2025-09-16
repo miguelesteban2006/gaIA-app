@@ -15,136 +15,136 @@ export default function Landing() {
   const [isLogin, setIsLogin] = useState(true);
   const [, setLocation] = useLocation();
 
-  // Limpiar tokens corruptos al cargar
+  // 1) Utilidades para encontrar/crear un perfil y redirigir
+  async function extractFirstIdFromJson(json: any): Promise<string | null> {
+    if (!json) return null;
+
+    // Respuestas típicas: Array directo o {data: [...]}
+    const arr =
+      Array.isArray(json) ? json :
+      Array.isArray(json?.data) ? json.data :
+      Array.isArray(json?.items) ? json.items :
+      null;
+
+    const first = arr && arr.length ? arr[0] : null;
+    if (!first) return null;
+
+    return first.id || first._id || first.uuid || null;
+  }
+
+  async function tryListFirstProfile(): Promise<{ id: string } | null> {
+    const listCandidates = [
+      "/api/elderly-users?limit=1",
+      "/api/elderly?limit=1",
+      "/api/patients?limit=1",
+      "/api/residents?limit=1",
+      "/api/seniors?limit=1",
+    ];
+
+    for (const path of listCandidates) {
+      try {
+        const res = await apiRequest("GET", path);
+        if (res.ok) {
+          const json = await res.json();
+          const id = await extractFirstIdFromJson(json);
+          if (id) return { id };
+        }
+      } catch {
+        // probar siguiente
+      }
+    }
+    return null;
+  }
+
+  async function tryCreateDefaultProfile(): Promise<{ id: string } | null> {
+    // Sólo intentamos crear en el recurso canónico de frontend
+    const createBody = {
+      firstName: "Mi familiar",
+      lastName: "",
+    };
+    try {
+      const res = await apiRequest("POST", "/api/elderly-users", createBody);
+      if (res.ok) {
+        const json = await res.json();
+        const id = json?.id || json?._id || json?.data?.id || json?.data?._id || null;
+        if (id) return { id };
+      }
+    } catch {
+      // ignorar
+    }
+    return null;
+  }
+
+  async function redirectToFirstProfileOrHome() {
+    // 1) buscar primer perfil existente
+    const existing = await tryListFirstProfile();
+    if (existing?.id) {
+      // Redirección dura para evitar estados en memoria
+      window.location.replace(`/elderly-users/${existing.id}`);
+      return;
+    }
+    // 2) intentar crear uno por defecto
+    const created = await tryCreateDefaultProfile();
+    if (created?.id) {
+      window.location.replace(`/elderly-users/${created.id}`);
+      return;
+    }
+    // 3) fallback
+    window.location.replace(`/`);
+  }
+
+  // Limpiar cualquier token inválido al cargar la página de login
   useEffect(() => {
     const token = localStorage.getItem("eldercompanion_token");
     if (token) {
       try {
         const parts = token.split(".");
-        if (parts.length !== 3) localStorage.removeItem("eldercompanion_token");
+        if (parts.length !== 3) {
+          localStorage.removeItem("eldercompanion_token");
+        }
       } catch {
         localStorage.removeItem("eldercompanion_token");
       }
     }
   }, []);
 
-  // ——— NUEVO: helper para, tras login/registro, ir al panel correcto ———
-  const goToUserPanel = async () => {
-    try {
-      // 1) Intentar obtener el usuario autenticado (si existe el endpoint)
-      let me: any = null;
-      for (const path of ["/api/auth/me", "/api/auth/user"]) {
-        try {
-          const r = await apiRequest("GET", path);
-          if (r.ok) {
-            me = await r.json();
-            break;
-          }
-        } catch {
-          /* sigue probando */
-        }
-      }
-
-      // 2) Buscar el primer perfil de adulto mayor del usuario (probando endpoints conocidos)
-      const candidates = [
-        "/api/elderly-users?limit=1",
-        "/api/elderly?limit=1",
-        "/api/patients?limit=1",
-        "/api/residents?limit=1",
-        "/api/seniors?limit=1",
-      ];
-
-      let firstId: string | null = null;
-
-      for (const path of candidates) {
-        try {
-          const r = await apiRequest("GET", path);
-          if (!r.ok) continue;
-          const json = await r.json();
-
-          // Aceptamos varios formatos (array o objeto con data)
-          const list = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
-          if (list.length > 0) {
-            const item = list[0];
-            // Intenta mapear posibles nombres de campo para ID
-            firstId =
-              item?.id ?? item?._id ?? item?.elderlyId ?? item?.uuid ?? null;
-            if (firstId) break;
-          }
-        } catch {
-          // sigue probando
-        }
-      }
-
-      // 3) Redirigir
-      if (firstId) {
-        setLocation(`/elderly-users/${firstId}`);
-      } else {
-        // Si no hay perfiles aún, ve al Home (desde ahí el usuario crea uno)
-        setLocation("/");
-      }
-    } catch {
-      // Fallback
-      setLocation("/");
-    }
-  };
-
   const authMutation = useMutation({
     mutationFn: async (data: any) => {
       const endpoint = isLogin ? "/api/login" : "/api/register";
       const response = await apiRequest("POST", endpoint, data);
       if (!response.ok) {
-        const txt = await response.text().catch(() => "");
-        // Lanzamos error con el texto del backend para parsearlo abajo
-        throw new Error(`${response.status}:${txt}`);
+        const msg = await response.text().catch(() => "");
+        throw new Error(`${response.status}:${msg || "ERROR"}`);
       }
       return response.json();
     },
     onSuccess: async (data) => {
-      // Guardar token para siguientes peticiones
+      // Guardar token (si tu backend devuelve token; si usas cookie, esto no rompe)
       if (data?.token) setAuthToken(data.token);
 
-      // Refrescar caché de usuario
+      // Refrescar caches de usuario
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
 
       toast({
         title: "¡Bienvenido a GaIA!",
-        description: isLogin
-          ? "Has iniciado sesión correctamente"
-          : "Tu cuenta ha sido creada exitosamente",
+        description: isLogin ? "Has iniciado sesión correctamente" : "Tu cuenta ha sido creada exitosamente",
       });
 
-      // ——— NUEVO: ir directo al panel del primer perfil ———
-      await goToUserPanel();
+      // Redirigir SIEMPRE a un perfil (creando uno si no hay)
+      await redirectToFirstProfileOrHome();
     },
     onError: (error: Error) => {
       const msg = error.message || "";
-      // Mensajes más claros según backend
-      if (msg.startsWith("401:")) {
-        return toast({
-          title: "Credenciales inválidas",
-          description: "Revisa tu email y contraseña.",
-          variant: "destructive",
-        });
-      }
-      if (msg.includes("FIELDS_REQUIRED") || msg.startsWith("400:")) {
-        return toast({
-          title: "Datos incompletos o usuario existente",
-          description: "Revisa los campos. Si es registro, puede que el email ya exista.",
-          variant: "destructive",
-        });
-      }
-      if (msg.startsWith("409:")) {
-        return toast({
-          title: "El usuario ya existe",
-          description: "Prueba con otro correo o inicia sesión.",
-          variant: "destructive",
-        });
-      }
+      const is400 = msg.startsWith("400");
+      const is409 = msg.startsWith("409") || msg.includes("ALREADY") || msg.includes("EXISTS");
       toast({
         title: "Error",
-        description: "Error al procesar la solicitud",
+        description: is409
+          ? "Ese correo ya está registrado"
+          : is400
+          ? "El usuario ya existe o los datos son incorrectos"
+          : "Error al procesar la solicitud",
         variant: "destructive",
       });
     },
@@ -168,6 +168,7 @@ export default function Landing() {
     authMutation.mutate(data);
   };
 
+  // ======= UI (tu diseño original) =======
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Hero Section */}
@@ -189,7 +190,7 @@ export default function Landing() {
             Sistema inteligente de monitoreo y cuidado para adultos mayores. 
             Conectando familias, profesionales médicos y asistentes robóticos para un cuidado integral.
           </p>
-          
+
           {/* Features Grid */}
           <div className="grid md:grid-cols-3 gap-8 mb-16 px-4 md:px-0">
             <div className="text-center">
@@ -270,7 +271,7 @@ export default function Landing() {
                     </div>
                   </>
                 )}
-                
+
                 <div>
                   <Label htmlFor="email">Correo Electrónico</Label>
                   <Input
@@ -281,7 +282,7 @@ export default function Landing() {
                     placeholder="tu@email.com"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="password">Contraseña</Label>
                   <Input
@@ -303,7 +304,7 @@ export default function Landing() {
                     : (isLogin ? "Iniciar Sesión" : "Crear Cuenta")}
                 </Button>
               </form>
-              
+
               <div className="mt-4 text-center">
                 <button
                   type="button"
@@ -335,7 +336,7 @@ export default function Landing() {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
